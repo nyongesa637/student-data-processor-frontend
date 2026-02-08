@@ -1,4 +1,18 @@
-<main>
-  <h1>Hello, {{ title }}</h1>
-  <p>Congratulations! Your app is running.</p>
-</main>
+<mat-toolbar color="primary">
+  <span>{{ title }}</span>
+</mat-toolbar>
+
+<mat-tab-group>
+  <mat-tab label="Generate Data">
+    <app-data-generation></app-data-generation>
+  </mat-tab>
+  <mat-tab label="Process Excel → CSV">
+    <app-data-processing></app-data-processing>
+  </mat-tab>
+  <mat-tab label="Upload CSV → DB">
+    <app-data-upload></app-data-upload>
+  </mat-tab>
+  <mat-tab label="Report">
+    <app-report></app-report>
+  </mat-tab>
+</mat-tab-group>
