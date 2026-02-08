@@ -25,4 +25,13 @@ export class ApiService {
     formData.append('file', file);
     return this.http.post(`${this.baseUrl}/upload`, formData);
   }
+
+  getStudents(page: number, size: number, studentId?: string, studentClass?: string): Observable<any> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    if (studentId) params = params.set('studentId', studentId);
+    if (studentClass) params = params.set('studentClass', studentClass);
+    return this.http.get(`${this.baseUrl}/students`, { params });
+  }
 }
