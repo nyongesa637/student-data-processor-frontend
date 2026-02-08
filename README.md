@@ -32,7 +32,90 @@ chmod +x run.sh
 ./run.sh --skip-setup
 ```
 
-## Manual Setup
+The `run.sh` script automatically detects your OS and package manager, installs Node.js if missing, installs npm dependencies, and starts the dev server. See [Automated Setup Script](#automated-setup-script) for details.
+
+## Manual Setup by Operating System
+
+### Linux
+
+#### Install Node.js 18+
+
+**Fedora / RHEL / CentOS:**
+```bash
+sudo dnf install -y nodejs npm
+```
+
+**Ubuntu / Debian (via NodeSource):**
+```bash
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+**Ubuntu / Debian (from default repos):**
+```bash
+sudo apt-get update
+sudo apt-get install -y nodejs npm
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S nodejs npm
+```
+
+Verify installation:
+```bash
+node -v   # Should show v18.x or higher
+npm -v    # Should show 9.x or higher
+```
+
+---
+
+### macOS
+
+#### Install Node.js 18+
+
+```bash
+# Using Homebrew (install from https://brew.sh if not installed)
+brew install node@18
+brew link --overwrite node@18
+```
+
+Verify installation:
+```bash
+node -v
+npm -v
+```
+
+---
+
+### Windows
+
+#### Install Node.js 18+
+
+**Using winget (Windows 10/11):**
+```powershell
+winget install --id OpenJS.NodeJS.LTS
+```
+
+**Using Chocolatey:**
+```powershell
+choco install nodejs-lts -y
+```
+
+**Manual install:**
+Download the LTS installer from [Node.js Downloads](https://nodejs.org/en/download/) and run it. The installer includes npm.
+
+Verify installation (open a new terminal):
+```powershell
+node -v
+npm -v
+```
+
+---
+
+### Install Dependencies and Run
+
+After installing Node.js on your OS:
 
 ```bash
 # 1. Install dependencies
@@ -43,6 +126,24 @@ npx ng serve
 ```
 
 The app starts on **http://localhost:4200**. Requires the backend running on port 8080.
+
+## Automated Setup Script
+
+The `run.sh` script handles the full setup automatically on Linux, macOS, and Windows (Git Bash / WSL / MSYS2):
+
+```bash
+./run.sh                  # Full setup: install Node.js, npm deps, build & run
+./run.sh --skip-setup     # Skip installation, validate & run only
+./run.sh -s               # Short alias for --skip-setup
+./run.sh --check          # Only validate environment, don't run
+./run.sh --help           # Show help
+```
+
+The script:
+- Detects your OS and package manager (dnf, apt, pacman, zypper, brew, winget, choco)
+- Installs Node.js 18 if missing or outdated
+- Runs `npm install` to install/update dependencies
+- Starts the Angular dev server with `ng serve --open`
 
 ## Features
 
