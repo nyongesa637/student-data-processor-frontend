@@ -34,4 +34,25 @@ export class ApiService {
     if (studentClass) params = params.set('studentClass', studentClass);
     return this.http.get(`${this.baseUrl}/students`, { params });
   }
+
+  exportExcel(studentId?: string, studentClass?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (studentId) params = params.set('studentId', studentId);
+    if (studentClass) params = params.set('studentClass', studentClass);
+    return this.http.get(`${this.baseUrl}/students/export/excel`, { params, responseType: 'blob' });
+  }
+
+  exportCsv(studentId?: string, studentClass?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (studentId) params = params.set('studentId', studentId);
+    if (studentClass) params = params.set('studentClass', studentClass);
+    return this.http.get(`${this.baseUrl}/students/export/csv`, { params, responseType: 'blob' });
+  }
+
+  exportPdf(studentId?: string, studentClass?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (studentId) params = params.set('studentId', studentId);
+    if (studentClass) params = params.set('studentClass', studentClass);
+    return this.http.get(`${this.baseUrl}/students/export/pdf`, { params, responseType: 'blob' });
+  }
 }
