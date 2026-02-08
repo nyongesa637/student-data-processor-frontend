@@ -108,15 +108,15 @@ check_node_modules() {
 
 check_backend_reachable() {
     if has_cmd curl; then
-        if curl -s --connect-timeout 2 http://localhost:8080/api/students &>/dev/null; then
-            ok "Backend is reachable at http://localhost:8080"
+        if curl -s --connect-timeout 2 http://localhost:9090/api/students &>/dev/null; then
+            ok "Backend is reachable at http://localhost:9090"
             return 0
         else
-            warn "Backend not reachable at http://localhost:8080 (start it before using the app)"
+            warn "Backend not reachable at http://localhost:9090 (start it before using the app)"
             return 1
         fi
     else
-        info "Cannot check backend (curl not available). Ensure it's running on port 8080."
+        info "Cannot check backend (curl not available). Ensure it's running on port 9090."
         return 0
     fi
 }
@@ -234,7 +234,7 @@ main() {
     # Run
     header "Starting Frontend Dev Server"
     info "URL: http://localhost:4200"
-    info "Backend must be running on http://localhost:8080"
+    info "Backend must be running on http://localhost:9090"
     info "Press Ctrl+C to stop"
     echo ""
     npx ng serve --open 2>/dev/null || npx ng serve

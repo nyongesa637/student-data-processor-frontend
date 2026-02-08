@@ -125,7 +125,7 @@ npm install
 npx ng serve
 ```
 
-The app starts on **http://localhost:4200**. Requires the backend running on port 8080.
+The app starts on **http://localhost:4200**. Requires the backend running on port 9090.
 
 ## Automated Setup Script
 
@@ -199,7 +199,7 @@ src/
 
 ## API Integration
 
-All API calls go through `ApiService` (`src/app/services/api.service.ts`), connecting to `http://localhost:8080/api`:
+All API calls go through `ApiService` (`src/app/services/api.service.ts`), connecting to `http://localhost:9090/api`:
 
 | Method | Endpoint | Component | Action |
 |--------|----------|-----------|--------|
@@ -233,7 +233,7 @@ Each component:
 To change the backend URL, edit `src/app/services/api.service.ts`:
 
 ```typescript
-private baseUrl = 'http://localhost:8080/api'; // Change this
+private baseUrl = 'http://localhost:9090/api'; // Change this
 ```
 
 ## Build
