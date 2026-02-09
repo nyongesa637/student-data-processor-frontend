@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild, NgZone, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, NgZone, AfterViewInit, ViewChildren, QueryList } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -104,29 +104,33 @@ interface MeshNode {
   ],
   template: `
     <div class="dashboard">
-      <!-- Action Cards with Mesh Background -->
-      <div class="mesh-container" (mousemove)="onMeshMouseMove($event)" (mouseleave)="onMeshMouseLeave()">
-        <canvas #meshCanvas class="mesh-canvas"></canvas>
-        <div class="action-cards">
-          <div class="action-card get-started">
-            <div class="card-content">
-              <mat-icon class="card-icon">rocket_launch</mat-icon>
-              <h2>Get Started</h2>
-              <p>Generate student data to begin your data processing workflow</p>
-              <button mat-raised-button routerLink="/generate" class="card-btn">
-                <mat-icon>arrow_forward</mat-icon> Generate Data
-              </button>
-            </div>
+      <!-- Action Cards - each with own mesh -->
+      <div class="action-cards">
+        <div class="action-card get-started"
+             (mousemove)="onCardMouseMove($event, 0)"
+             (mouseleave)="onCardMouseLeave(0)">
+          <canvas #cardCanvas class="card-mesh-canvas"></canvas>
+          <div class="card-overlay"></div>
+          <div class="card-content">
+            <mat-icon class="card-icon">rocket_launch</mat-icon>
+            <h2>Get Started</h2>
+            <p>Generate student data to begin your data processing workflow</p>
+            <button mat-raised-button routerLink="/generate" class="card-btn get-started-btn">
+              <mat-icon>arrow_forward</mat-icon> Generate Data
+            </button>
           </div>
-          <div class="action-card request-feature">
-            <div class="card-content">
-              <mat-icon class="card-icon">lightbulb</mat-icon>
-              <h2>Request Feature</h2>
-              <p>Have an idea? Submit a feature request and help shape the app</p>
-              <button mat-raised-button (click)="openFeatureDialog()" class="card-btn">
-                <mat-icon>add</mat-icon> Request Feature
-              </button>
-            </div>
+        </div>
+        <div class="action-card request-feature"
+             (mousemove)="onCardMouseMove($event, 1)"
+             (mouseleave)="onCardMouseLeave(1)">
+          <canvas #cardCanvas class="card-mesh-canvas"></canvas>
+          <div class="card-content">
+            <mat-icon class="card-icon">lightbulb</mat-icon>
+            <h2>Request Feature</h2>
+            <p>Have an idea? Submit a feature request and help shape the app</p>
+            <button mat-raised-button (click)="openFeatureDialog()" class="card-btn feature-btn">
+              <mat-icon>add</mat-icon> Request Feature
+            </button>
           </div>
         </div>
       </div>
@@ -188,19 +192,6 @@ interface MeshNode {
           </div>
         </div>
 
-        <div class="class-distribution" *ngIf="analytics?.classDistribution">
-          <h4>Top Classes by Student Count</h4>
-          <div class="distribution-bars">
-            <div class="dist-row" *ngFor="let entry of classDistEntries">
-              <span class="dist-label">{{ entry[0] }}</span>
-              <div class="dist-bar-container">
-                <div class="dist-bar" [style.width.%]="getBarWidth(entry[1])"></div>
-              </div>
-              <span class="dist-count">{{ entry[1] }}</span>
-            </div>
-          </div>
-        </div>
-
         <div class="recent-section" *ngIf="analytics?.recentRecords?.length > 0">
           <h4>Recent Records</h4>
           <table mat-table [dataSource]="analytics.recentRecords" class="recent-table">
@@ -223,7 +214,7 @@ interface MeshNode {
             <tr mat-header-row *matHeaderRowDef="['studentId', 'firstName', 'studentClass', 'score']"></tr>
             <tr mat-row *matRowDef="let row; columns: ['studentId', 'firstName', 'studentClass', 'score']"></tr>
           </table>
-          <a routerLink="/report" class="view-more">View all in Report →</a>
+          <a routerLink="/report" class="view-more">View all in Report &rarr;</a>
         </div>
       </div>
     </div>
@@ -234,59 +225,56 @@ interface MeshNode {
       margin: 0 auto;
     }
 
-    .mesh-container {
-      position: relative;
-      border-radius: 16px;
-      overflow: hidden;
-      margin-bottom: 32px;
-      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
-    }
-
-    .mesh-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-
     .action-cards {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 24px;
-      padding: 32px;
-      position: relative;
-      z-index: 1;
+      margin-bottom: 32px;
     }
 
     .action-card {
-      border-radius: 12px;
-      padding: 32px;
       position: relative;
+      border-radius: 16px;
       overflow: hidden;
       cursor: default;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      transition: transform 0.2s ease, background 0.2s ease;
+      min-height: 220px;
+      display: flex;
+      align-items: stretch;
 
-      &:hover {
-        transform: translateY(-2px);
-        background: rgba(255, 255, 255, 0.15);
+      .card-mesh-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .card-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
       }
 
       .card-content {
         position: relative;
-        z-index: 1;
-        color: white;
+        z-index: 2;
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
 
         .card-icon {
           font-size: 40px;
           width: 40px;
           height: 40px;
           margin-bottom: 12px;
-          opacity: 0.9;
         }
 
         h2 {
@@ -297,24 +285,69 @@ interface MeshNode {
 
         p {
           margin: 0 0 20px;
-          opacity: 0.85;
           font-size: 14px;
           line-height: 1.5;
         }
 
         .card-btn {
-          background: rgba(255, 255, 255, 0.2);
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          backdrop-filter: blur(4px);
+          width: fit-content;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          border: 1px solid var(--border);
+          box-shadow: none;
 
           mat-icon {
             font-size: 18px;
             width: 18px;
             height: 18px;
-            margin-right: 4px;
           }
         }
+      }
+
+      &.get-started {
+        background: var(--surface);
+        border: 1px solid var(--border);
+
+        .card-overlay {
+          background: rgba(14, 165, 233, 0.06);
+        }
+
+        .card-content {
+          color: var(--text);
+
+          .card-icon { color: var(--primary); opacity: 0.9; }
+          p { color: var(--text-secondary); }
+
+          .get-started-btn {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+          }
+        }
+      }
+
+      &.request-feature {
+        background: var(--surface);
+        border: 1px solid var(--border);
+
+        .card-content {
+          color: var(--text);
+
+          .card-icon { color: var(--primary); opacity: 0.9; }
+          p { color: var(--text-secondary); }
+
+          .feature-btn {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+          }
+        }
+      }
+
+      &:hover {
+        transform: translateY(-2px);
+        transition: transform 0.2s ease;
       }
     }
 
@@ -454,53 +487,6 @@ interface MeshNode {
       }
     }
 
-    .class-distribution {
-      margin-bottom: 24px;
-
-      h4 { font-size: 15px; color: var(--text-secondary, #6b7280); margin-bottom: 12px; }
-
-      .distribution-bars {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .dist-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .dist-label {
-          min-width: 70px;
-          font-size: 13px;
-          color: var(--text-secondary, #6b7280);
-          text-align: right;
-        }
-
-        .dist-bar-container {
-          flex: 1;
-          height: 20px;
-          background: var(--bg, #f8fafc);
-          border-radius: 10px;
-          overflow: hidden;
-        }
-
-        .dist-bar {
-          height: 100%;
-          background: linear-gradient(to right, var(--primary, #0ea5e9), rgba(14, 165, 233, 0.5));
-          border-radius: 10px;
-          transition: width 0.5s ease;
-        }
-
-        .dist-count {
-          min-width: 50px;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--text, #1f2937);
-        }
-      }
-    }
-
     .recent-section {
       h4 { font-size: 15px; color: var(--text-secondary, #6b7280); margin-bottom: 12px; }
 
@@ -534,15 +520,13 @@ interface MeshNode {
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   analytics: any = null;
   loadingAnalytics = true;
-  classDistEntries: [string, number][] = [];
-  maxClassCount = 0;
 
-  @ViewChild('meshCanvas') meshCanvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChildren('cardCanvas') cardCanvasRefs!: QueryList<ElementRef<HTMLCanvasElement>>;
 
-  private meshNodes: MeshNode[] = [];
-  private animFrameId = 0;
-  private mouseX = -1000;
-  private mouseY = -1000;
+  private cardMeshNodes: MeshNode[][] = [[], []];
+  private animFrameIds: number[] = [0, 0];
+  private cardMouseX: number[] = [-1000, -1000];
+  private cardMouseY: number[] = [-1000, -1000];
 
   steps = [
     { name: 'Generate Data', description: 'Create Excel file', icon: 'dataset', route: '/generate' },
@@ -564,10 +548,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (data) => {
         this.analytics = data;
         this.loadingAnalytics = false;
-        if (data.classDistribution) {
-          this.classDistEntries = Object.entries(data.classDistribution) as [string, number][];
-          this.maxClassCount = Math.max(...this.classDistEntries.map(e => e[1] as number), 1);
-        }
       },
       error: () => {
         this.loadingAnalytics = false;
@@ -576,19 +556,18 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.initMesh();
-  }
-
-  ngOnDestroy() {
-    if (this.animFrameId) {
-      cancelAnimationFrame(this.animFrameId);
+    const canvases = this.cardCanvasRefs.toArray();
+    if (canvases.length >= 2) {
+      this.initCardMesh(canvases[0].nativeElement, 0);
+      this.initCardMesh(canvases[1].nativeElement, 1);
     }
   }
 
-  private initMesh() {
-    const canvas = this.meshCanvasRef?.nativeElement;
-    if (!canvas) return;
+  ngOnDestroy() {
+    this.animFrameIds.forEach(id => { if (id) cancelAnimationFrame(id); });
+  }
 
+  private initCardMesh(canvas: HTMLCanvasElement, index: number) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -602,65 +581,64 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas.parentElement!);
 
-    // Create nodes
-    for (let i = 0; i < 60; i++) {
-      this.meshNodes.push({
+    const nodeCount = 35;
+    this.cardMeshNodes[index] = [];
+    for (let i = 0; i < nodeCount; i++) {
+      this.cardMeshNodes[index].push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
         radius: Math.random() * 2 + 1
       });
     }
 
+    // Sky blue mesh color for both cards
+    const nodeColor = 'rgba(14, 165, 233, 0.5)';
+    const lineColor = (opacity: number) => `rgba(14, 165, 233, ${opacity})`;
+
     this.ngZone.runOutsideAngular(() => {
       const animate = () => {
-        this.animFrameId = requestAnimationFrame(animate);
+        this.animFrameIds[index] = requestAnimationFrame(animate);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Update and draw nodes
-        for (const node of this.meshNodes) {
-          // Mouse repulsion
-          const dx = node.x - this.mouseX;
-          const dy = node.y - this.mouseY;
+        const nodes = this.cardMeshNodes[index];
+        for (const node of nodes) {
+          const dx = node.x - this.cardMouseX[index];
+          const dy = node.y - this.cardMouseY[index];
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120 && dist > 0) {
-            const force = (120 - dist) / 120 * 0.8;
+          if (dist < 100 && dist > 0) {
+            const force = (100 - dist) / 100 * 0.6;
             node.vx += (dx / dist) * force;
             node.vy += (dy / dist) * force;
           }
 
-          // Damping
           node.vx *= 0.98;
           node.vy *= 0.98;
-
           node.x += node.vx;
           node.y += node.vy;
 
-          // Bounce off walls
           if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
           if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
           node.x = Math.max(0, Math.min(canvas.width, node.x));
           node.y = Math.max(0, Math.min(canvas.height, node.y));
 
-          // Draw node
           ctx.beginPath();
           ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+          ctx.fillStyle = nodeColor;
           ctx.fill();
         }
 
-        // Draw connections
-        for (let i = 0; i < this.meshNodes.length; i++) {
-          for (let j = i + 1; j < this.meshNodes.length; j++) {
-            const a = this.meshNodes[i];
-            const b = this.meshNodes[j];
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const a = nodes[i];
+            const b = nodes[j];
             const d = Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-            if (d < 150) {
+            if (d < 120) {
               ctx.beginPath();
               ctx.moveTo(a.x, a.y);
               ctx.lineTo(b.x, b.y);
-              ctx.strokeStyle = `rgba(255, 255, 255, ${0.15 * (1 - d / 150)})`;
+              ctx.strokeStyle = lineColor(0.12 * (1 - d / 120));
               ctx.lineWidth = 0.5;
               ctx.stroke();
             }
@@ -671,19 +649,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  onMeshMouseMove(event: MouseEvent) {
+  onCardMouseMove(event: MouseEvent, index: number) {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    this.mouseX = event.clientX - rect.left;
-    this.mouseY = event.clientY - rect.top;
+    this.cardMouseX[index] = event.clientX - rect.left;
+    this.cardMouseY[index] = event.clientY - rect.top;
   }
 
-  onMeshMouseLeave() {
-    this.mouseX = -1000;
-    this.mouseY = -1000;
-  }
-
-  getBarWidth(count: number): number {
-    return (count / this.maxClassCount) * 100;
+  onCardMouseLeave(index: number) {
+    this.cardMouseX[index] = -1000;
+    this.cardMouseY[index] = -1000;
   }
 
   openFeatureDialog() {

@@ -1,5 +1,35 @@
 # Frontend Changelog
 
+## [4.0.0] - 2026-02-09
+
+### Added
+- Global search now includes student records (searches pages, actions, and students)
+- Ctrl+K keyboard shortcut to focus global search bar, shortcut badge shown in input
+- Chat-based help system with `/` commands (type `/` to see available commands)
+- Right-side preview panel on Generate, Process, and Upload pages showing records in editor-style table (first 15 rows)
+- File summary section displayed below action cards after operations complete
+- Individual mesh canvas animation per action card on home page
+
+### Changed
+- Search bar now spans the full center of the header (flex: 1) instead of fixed width
+- Sidebar collapse icon changed to `view_sidebar` (rounded rectangle with 1/4-3/4 split)
+- Documentation moved to the bottom of the sidebar
+- Changelog panel now shows only frontend updates in email-style layout (not list format)
+- Removed changelog filter buttons (All/Frontend/Backend) - defaults to frontend only
+- Home page action cards: Get Started has sky blue overlay + mesh, Request Feature has mesh only with neutral button
+- Upload/Process/Generate action buttons now use sky blue (#0ea5e9) background
+- Removed all box shadows from Generate, Process, and Upload cards and buttons (outline only)
+- Preview panel redesigned from inline banner to right-side editor-style record viewer
+
+### Removed
+- "Top Classes by Student Count" section from home page analytics
+- Backend changelog entries from the chat panel
+- Help items list replaced with interactive chat command system
+
+### Fixed
+- Sidenav collapse gap: no more space between body and collapsed sidenav
+- Sidebar no longer has horizontal or vertical scrolling
+
 ## [3.0.0] - 2026-02-09
 
 ### Added

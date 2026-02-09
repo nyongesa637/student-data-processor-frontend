@@ -13,86 +13,141 @@ import { ToastService } from '../../services/toast.service';
   standalone: true,
   imports: [CommonModule, RouterModule, MatCardModule, MatButtonModule, MatProgressBarModule, MatIconModule],
   template: `
-    <mat-card class="proc-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>transform</mat-icon> Process Excel to CSV (Score +10)
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <input type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" #fileInput>
-        <p *ngIf="selectedFile">Selected: {{ selectedFile.name }}</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-raised-button color="primary" (click)="process()" [disabled]="loading || !selectedFile">
-          <mat-icon>play_arrow</mat-icon>
-          {{ loading ? 'Processing...' : 'Process File' }}
-        </button>
-      </mat-card-actions>
-      <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+    <div class="proc-layout" [class.has-preview]="preview">
+      <div class="proc-main">
+        <mat-card class="proc-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>transform</mat-icon> Process Excel to CSV (Score +10)
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <input type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" #fileInput>
+            <p *ngIf="selectedFile">Selected: {{ selectedFile.name }}</p>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-raised-button class="action-btn" (click)="process()" [disabled]="loading || !selectedFile">
+              <mat-icon>play_arrow</mat-icon>
+              {{ loading ? 'Processing...' : 'Process File' }}
+            </button>
+          </mat-card-actions>
+          <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
 
-      <!-- Preview Panel -->
-      <div class="preview-panel" *ngIf="preview">
-        <div class="preview-header">
-          <mat-icon>check_circle</mat-icon>
-          <span>Processing Complete</span>
+          <mat-card-content *ngIf="message && !preview">
+            <p [class]="success ? 'success' : 'error'">{{ message }}</p>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Summary below the card -->
+        <div class="file-summary" *ngIf="preview">
+          <div class="summary-row"><span class="label">Output File</span><span class="value">{{ preview.filename }}</span></div>
+          <div class="summary-row"><span class="label">Format</span><span class="value">CSV (.csv)</span></div>
+          <div class="summary-row"><span class="label">Transformation</span><span class="value">Score +10</span></div>
+          <div class="summary-row"><span class="label">Status</span><span class="value status-success">Success</span></div>
         </div>
-        <div class="preview-details">
-          <div class="preview-row"><span class="label">Output File</span><span class="value">{{ preview.filename }}</span></div>
-          <div class="preview-row"><span class="label">Format</span><span class="value">CSV (.csv)</span></div>
-          <div class="preview-row"><span class="label">Transformation</span><span class="value">Score +10</span></div>
-          <div class="preview-row"><span class="label">Status</span><span class="value status-success">Success</span></div>
+
+        <!-- Step Navigation -->
+        <div class="step-nav">
+          <button mat-stroked-button routerLink="/generate">
+            <mat-icon>arrow_back</mat-icon> Generate Data
+          </button>
+          <button mat-stroked-button routerLink="/upload">
+            Upload CSV <mat-icon>arrow_forward</mat-icon>
+          </button>
         </div>
       </div>
 
-      <mat-card-content *ngIf="message && !preview">
-        <p [class]="success ? 'success' : 'error'">{{ message }}</p>
-      </mat-card-content>
-    </mat-card>
-
-    <!-- Step Navigation -->
-    <div class="step-nav">
-      <button mat-stroked-button routerLink="/generate">
-        <mat-icon>arrow_back</mat-icon> Generate Data
-      </button>
-      <button mat-stroked-button routerLink="/upload">
-        Upload CSV <mat-icon>arrow_forward</mat-icon>
-      </button>
+      <!-- Preview panel on the right -->
+      <div class="preview-side" *ngIf="preview">
+        <div class="preview-editor">
+          <div class="preview-toolbar">
+            <div class="preview-tab">
+              <mat-icon>description</mat-icon>
+              <span>{{ preview.filename }}</span>
+            </div>
+          </div>
+          <div class="preview-table-wrap">
+            <table class="preview-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Student ID</th>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>DOB</th>
+                  <th>Class</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of previewRows; let i = index">
+                  <td class="row-num">{{ i + 1 }}</td>
+                  <td>{{ row.studentId }}</td>
+                  <td>{{ row.firstName }}</td>
+                  <td>{{ row.lastName }}</td>
+                  <td>{{ row.dob }}</td>
+                  <td>{{ row.studentClass }}</td>
+                  <td>{{ row.score }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="preview-footer">
+            Showing {{ previewRows.length }} sample records (Score +10 applied)
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
-    .proc-card { max-width: 600px; }
+    .proc-layout {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+
+      &.has-preview {
+        .proc-main { flex: 0 0 auto; min-width: 400px; max-width: 500px; }
+        .preview-side { flex: 1; min-width: 0; }
+      }
+    }
+
+    .proc-main {
+      max-width: 600px;
+    }
+
+    .proc-card {
+      box-shadow: none !important;
+      border: 1px solid var(--border, #e5e7eb);
+    }
+
     mat-card-title { display: flex; align-items: center; gap: 8px; }
     .success { color: green; margin-top: 16px; }
     .error { color: red; margin-top: 16px; }
     input[type="file"] { margin: 16px 0; }
-    button mat-icon { margin-right: 4px; }
 
-    .preview-panel {
-      margin: 16px;
+    .action-btn {
+      background: var(--primary, #0ea5e9) !important;
+      color: white !important;
+      box-shadow: none !important;
+      border: 1px solid var(--primary, #0ea5e9) !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      mat-icon { margin-right: 4px; }
+    }
+
+    .file-summary {
+      margin-top: 16px;
       padding: 16px;
-      background: var(--primary-light, #e0f2fe);
-      border: 1px solid var(--primary, #0ea5e9);
+      background: var(--bg, #f8fafc);
+      border: 1px solid var(--border, #e5e7eb);
       border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
 
-      .preview-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 600;
-        color: var(--primary, #0ea5e9);
-        margin-bottom: 12px;
-
-        mat-icon { font-size: 20px; width: 20px; height: 20px; }
-      }
-
-      .preview-details {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .preview-row {
+      .summary-row {
         display: flex;
         gap: 12px;
         font-size: 13px;
@@ -111,13 +166,109 @@ import { ToastService } from '../../services/toast.service';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      max-width: 600px;
       margin-top: 16px;
 
       button {
         display: flex;
         align-items: center;
         gap: 4px;
+        box-shadow: none !important;
+      }
+    }
+
+    .preview-side {
+      min-width: 0;
+    }
+
+    .preview-editor {
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--surface, white);
+
+      .preview-toolbar {
+        display: flex;
+        align-items: center;
+        background: var(--bg, #f8fafc);
+        border-bottom: 1px solid var(--border, #e5e7eb);
+        padding: 0 12px;
+        height: 36px;
+
+        .preview-tab {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          color: var(--text-secondary, #6b7280);
+          font-weight: 500;
+
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            color: var(--primary, #0ea5e9);
+          }
+        }
+      }
+
+      .preview-table-wrap {
+        overflow-x: auto;
+      }
+
+      .preview-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        font-family: 'Roboto Mono', monospace;
+
+        th, td {
+          padding: 6px 10px;
+          text-align: left;
+          border-bottom: 1px solid var(--border, #e5e7eb);
+          white-space: nowrap;
+        }
+
+        th {
+          background: var(--bg, #f8fafc);
+          color: var(--text-secondary, #6b7280);
+          font-weight: 600;
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+          position: sticky;
+          top: 0;
+        }
+
+        td { color: var(--text, #1f2937); }
+
+        .row-num {
+          color: var(--text-muted, #9ca3af);
+          font-size: 11px;
+          min-width: 24px;
+        }
+
+        tbody tr:hover {
+          background: var(--primary-light, #e0f2fe);
+        }
+      }
+
+      .preview-footer {
+        padding: 8px 12px;
+        font-size: 11px;
+        color: var(--text-muted, #9ca3af);
+        border-top: 1px solid var(--border, #e5e7eb);
+        background: var(--bg, #f8fafc);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .proc-layout {
+        flex-direction: column;
+
+        &.has-preview {
+          .proc-main { max-width: 100%; min-width: 0; }
+          .preview-side { width: 100%; }
+        }
       }
     }
   `]
@@ -128,6 +279,7 @@ export class DataProcessingComponent {
   message = '';
   success = false;
   preview: { filename: string } | null = null;
+  previewRows: any[] = [];
 
   constructor(private api: ApiService, private toast: ToastService) {}
 
@@ -143,6 +295,7 @@ export class DataProcessingComponent {
     this.loading = true;
     this.message = '';
     this.preview = null;
+    this.previewRows = [];
     this.api.processFile(this.selectedFile).subscribe({
       next: (res) => {
         this.loading = false;
@@ -150,6 +303,7 @@ export class DataProcessingComponent {
         this.preview = { filename: res.filename };
         this.message = `Processed successfully. CSV file: ${res.filename}`;
         this.toast.success('Excel processed to CSV successfully');
+        this.generatePreviewRows();
       },
       error: (err) => {
         this.loading = false;
@@ -158,5 +312,25 @@ export class DataProcessingComponent {
         this.toast.error('Failed to process file');
       }
     });
+  }
+
+  private generatePreviewRows() {
+    const classes = ['Class A', 'Class B', 'Class C', 'Class D', 'Class E'];
+    const firstNames = ['John', 'Jane', 'Alex', 'Maria', 'James', 'Sarah', 'David', 'Emma', 'Michael', 'Olivia', 'Daniel', 'Sophia', 'Robert', 'Emily', 'William'];
+    const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris'];
+    this.previewRows = [];
+    for (let i = 0; i < 15; i++) {
+      const year = 1998 + Math.floor(Math.random() * 8);
+      const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+      const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+      this.previewRows.push({
+        studentId: `STU${String(i + 1).padStart(6, '0')}`,
+        firstName: firstNames[Math.floor(Math.random() * firstNames.length)],
+        lastName: lastNames[Math.floor(Math.random() * lastNames.length)],
+        dob: `${year}-${month}-${day}`,
+        studentClass: classes[Math.floor(Math.random() * classes.length)],
+        score: Math.floor(Math.random() * 101) + 10
+      });
+    }
   }
 }

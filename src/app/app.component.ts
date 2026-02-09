@@ -29,6 +29,13 @@ interface SearchResult {
   route?: string;
 }
 
+interface ChatMessage {
+  type: 'user' | 'system';
+  text: string;
+  link?: string;
+  linkLabel?: string;
+}
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -58,25 +65,33 @@ export class AppComponent implements OnInit, OnDestroy {
   chatTab: 'changelog' | 'help' = 'changelog';
   changelog: ChangelogEntry[] = [];
   changelogCount = 0;
-  componentFilter: ChangelogFilter = 'ALL';
+  componentFilter: ChangelogFilter = 'FRONTEND';
+
+  // Help chat
+  helpInput = '';
+  showCommandList = false;
+  chatMessages: ChatMessage[] = [
+    { type: 'system', text: 'Welcome! Type / to see available commands.' }
+  ];
+
+  helpCommands = [
+    { cmd: '/dashboard', desc: 'Go to dashboard overview', route: '/home', response: 'Here\'s the dashboard where you can see analytics and workflow overview.' },
+    { cmd: '/generate', desc: 'How to generate data', route: '/generate', response: 'Navigate to the Generate Data page to create Excel files with student records.' },
+    { cmd: '/process', desc: 'How to process Excel files', route: '/process', response: 'Navigate to the Process Excel page to convert Excel files to CSV format.' },
+    { cmd: '/upload', desc: 'How to upload CSV data', route: '/upload', response: 'Navigate to the Upload CSV page to import data into the database.' },
+    { cmd: '/report', desc: 'How to view reports', route: '/report', response: 'Navigate to the Report page to view, search, filter, and export student data.' },
+    { cmd: '/docs', desc: 'View full documentation', route: '/docs', response: 'Visit the documentation page for comprehensive guides on all features.' }
+  ];
 
   navItems: NavItem[] = [
     { path: '/home', label: 'Home', icon: 'home' },
     { path: '/generate', label: 'Generate Data', icon: 'dataset' },
     { path: '/process', label: 'Process Excel', icon: 'transform' },
     { path: '/upload', label: 'Upload CSV', icon: 'cloud_upload' },
-    { path: '/report', label: 'Report', icon: 'assessment' },
-    { path: '/docs', label: 'Documentation', icon: 'menu_book' }
+    { path: '/report', label: 'Report', icon: 'assessment' }
   ];
 
-  helpItems = [
-    { icon: 'home', text: 'Dashboard Overview', route: '/home' },
-    { icon: 'dataset', text: 'How to Generate Data', route: '/docs' },
-    { icon: 'transform', text: 'Processing Excel Files', route: '/docs' },
-    { icon: 'cloud_upload', text: 'Uploading CSV Data', route: '/docs' },
-    { icon: 'assessment', text: 'Viewing Reports', route: '/docs' },
-    { icon: 'analytics', text: 'Analytics & Charts', route: '/docs' }
-  ];
+  docsNavItem: NavItem = { path: '/docs', label: 'Documentation', icon: 'menu_book' };
 
   @ViewChild('searchInput') searchInput!: ElementRef;
 
@@ -136,7 +151,8 @@ export class AppComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Subscribe to changelog
+    // Subscribe to changelog - default to frontend only
+    this.changelogService.setFilter('FRONTEND');
     this.subs.push(
       this.changelogService.filteredEntries$.subscribe(entries => {
         this.changelog = entries;
@@ -154,6 +170,14 @@ export class AppComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     if (!target.closest('.global-search')) {
       this.showSearchDropdown = false;
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+      event.preventDefault();
+      this.searchInput?.nativeElement?.focus();
     }
   }
 
@@ -186,7 +210,8 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const pages: SearchResult[] = this.navItems
+    const allNav = [...this.navItems, this.docsNavItem];
+    const pages: SearchResult[] = allNav
       .filter(n => n.label.toLowerCase().includes(q))
       .map(n => ({ group: 'Pages', icon: n.icon, text: n.label, route: n.path }));
 
@@ -199,6 +224,9 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     if ('upload csv'.includes(q) || 'upload database'.includes(q)) {
       actions.push({ group: 'Actions', icon: 'play_arrow', text: 'Upload CSV', sub: 'Store in database', route: '/upload' });
+    }
+    if ('export'.includes(q) || 'download'.includes(q)) {
+      actions.push({ group: 'Actions', icon: 'download', text: 'Export Data', sub: 'Excel, CSV, or PDF', route: '/report' });
     }
 
     this.searchResults = [...pages, ...actions, ...studentResults];
@@ -221,14 +249,58 @@ export class AppComponent implements OnInit, OnDestroy {
     this.chatOpen = !this.chatOpen;
   }
 
-  navigateHelp(route: string) {
+  // Help chat command system
+  onHelpInput() {
+    if (this.helpInput === '/') {
+      this.showCommandList = true;
+      return;
+    }
+    if (this.helpInput.startsWith('/')) {
+      this.showCommandList = true;
+    } else {
+      this.showCommandList = false;
+    }
+  }
+
+  onHelpKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && this.helpInput.trim()) {
+      this.executeCommand(this.helpInput.trim());
+    }
+  }
+
+  executeCommand(cmd: string) {
+    this.chatMessages.push({ type: 'user', text: cmd });
+    this.showCommandList = false;
+
+    const match = this.helpCommands.find(c => c.cmd === cmd);
+    if (match) {
+      this.chatMessages.push({
+        type: 'system',
+        text: match.response,
+        link: match.route,
+        linkLabel: `Go to ${match.desc}`
+      });
+    } else {
+      this.chatMessages.push({
+        type: 'system',
+        text: 'Unknown command. Type / to see available commands.'
+      });
+    }
+    this.helpInput = '';
+  }
+
+  selectCommand(cmd: string) {
+    this.executeCommand(cmd);
+  }
+
+  navigateFromChat(route: string) {
     this.router.navigate([route]);
     this.chatOpen = false;
   }
 
-  onComponentFilterChange(filter: ChangelogFilter) {
-    this.componentFilter = filter;
-    this.changelogService.setFilter(filter);
+  onComponentFilterChange(f: ChangelogFilter) {
+    this.componentFilter = f;
+    this.changelogService.setFilter(f);
   }
 
   formatChangelogDate(dateStr: string): string {

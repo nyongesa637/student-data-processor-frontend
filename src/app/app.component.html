@@ -9,22 +9,36 @@
         <mat-icon class="app-logo">school</mat-icon>
         <span class="app-title" *ngIf="sidenavOpen || isMobile">SDP</span>
       </div>
-      <mat-nav-list>
-        <a mat-list-item *ngFor="let item of navItems"
-           [routerLink]="item.path"
-           routerLinkActive="active-link"
-           [routerLinkActiveOptions]="{ exact: true }"
-           class="nav-item">
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle *ngIf="sidenavOpen || isMobile">{{ item.label }}</span>
-        </a>
-      </mat-nav-list>
+      <div class="sidenav-nav">
+        <mat-nav-list>
+          <a mat-list-item *ngFor="let item of navItems"
+             [routerLink]="item.path"
+             routerLinkActive="active-link"
+             [routerLinkActiveOptions]="{ exact: true }"
+             class="nav-item">
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle *ngIf="sidenavOpen || isMobile">{{ item.label }}</span>
+          </a>
+        </mat-nav-list>
+      </div>
+      <div class="sidenav-footer">
+        <mat-nav-list>
+          <a mat-list-item
+             [routerLink]="docsNavItem.path"
+             routerLinkActive="active-link"
+             [routerLinkActiveOptions]="{ exact: true }"
+             class="nav-item">
+            <mat-icon matListItemIcon>{{ docsNavItem.icon }}</mat-icon>
+            <span matListItemTitle *ngIf="sidenavOpen || isMobile">{{ docsNavItem.label }}</span>
+          </a>
+        </mat-nav-list>
+      </div>
     </mat-sidenav>
 
     <mat-sidenav-content class="main-content">
       <mat-toolbar class="header">
         <button mat-icon-button (click)="toggleSidenav()" class="menu-toggle">
-          <mat-icon>{{ sidenavOpen ? 'menu_open' : 'chevron_right' }}</mat-icon>
+          <mat-icon>{{ sidenavOpen ? 'view_sidebar' : 'view_sidebar' }}</mat-icon>
         </button>
 
         <nav class="breadcrumbs">
@@ -40,11 +54,15 @@
             <mat-icon>search</mat-icon>
             <input #searchInput
                    type="text"
-                   placeholder="Search pages, students..."
+                   placeholder="Search pages, actions, students..."
                    [(ngModel)]="searchQuery"
                    (input)="onSearchInput()"
                    (focus)="onSearchFocus()">
-            <span class="search-shortcut" *ngIf="!isMobile">/</span>
+            <span class="search-shortcut" *ngIf="!isMobile">
+              <span class="shortcut-key">Ctrl</span>
+              <span class="shortcut-plus">+</span>
+              <span class="shortcut-key">K</span>
+            </span>
           </div>
           <div class="search-dropdown" *ngIf="showSearchDropdown">
             <ng-container *ngIf="searchResults.length > 0; else noResults">
@@ -66,8 +84,6 @@
             </ng-template>
           </div>
         </div>
-
-        <span class="spacer"></span>
 
         <button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="notification-btn">
           <mat-icon [matBadge]="unreadCount > 0 ? unreadCount : null" matBadgeColor="warn" matBadgeSize="small">
@@ -116,26 +132,53 @@
       <button [class.active]="chatTab === 'help'" (click)="chatTab = 'help'">Help</button>
     </div>
     <div class="chat-body">
+      <!-- Changelog as email-style updates (frontend only) -->
       <ng-container *ngIf="chatTab === 'changelog'">
-        <div class="changelog-filters">
-          <button [class.active]="componentFilter === 'ALL'" (click)="onComponentFilterChange('ALL')">All</button>
-          <button [class.active]="componentFilter === 'FRONTEND'" (click)="onComponentFilterChange('FRONTEND')">Frontend</button>
-          <button [class.active]="componentFilter === 'BACKEND'" (click)="onComponentFilterChange('BACKEND')">Backend</button>
-        </div>
-        <div *ngIf="changelog.length === 0" class="no-results">No changelog entries yet.</div>
-        <div class="changelog-item" *ngFor="let entry of changelog">
-          <span class="changelog-version">{{ entry.version }}</span>
-          <span class="changelog-component" [attr.data-component]="entry.component">{{ entry.component }}</span>
-          <span class="changelog-date">{{ formatChangelogDate(entry.releaseDate) }}</span>
-          <div class="changelog-text">{{ entry.changes }}</div>
+        <div *ngIf="changelog.length === 0" class="no-results">No updates yet.</div>
+        <div class="changelog-email" *ngFor="let entry of changelog">
+          <div class="changelog-email-header">
+            <div class="changelog-email-icon">
+              <mat-icon>campaign</mat-icon>
+            </div>
+            <div class="changelog-email-meta">
+              <span class="changelog-email-subject">{{ entry.version }} Release</span>
+              <span class="changelog-email-date">{{ formatChangelogDate(entry.releaseDate) }}</span>
+            </div>
+          </div>
+          <div class="changelog-email-body">{{ entry.changes }}</div>
+          <div class="changelog-email-footer">
+            <span class="changelog-email-tag">Frontend</span>
+          </div>
         </div>
       </ng-container>
+
+      <!-- Help as chat with / commands -->
       <ng-container *ngIf="chatTab === 'help'">
-        <div class="help-section">
-          <div class="help-item" *ngFor="let item of helpItems" (click)="navigateHelp(item.route)">
-            <mat-icon>{{ item.icon }}</mat-icon>
-            <span>{{ item.text }}</span>
+        <div class="chat-messages">
+          <div *ngFor="let msg of chatMessages"
+               class="chat-message"
+               [class.user-message]="msg.type === 'user'"
+               [class.system-message]="msg.type === 'system'">
+            <div class="message-bubble">
+              <span>{{ msg.text }}</span>
+              <a *ngIf="msg.link" class="message-link" (click)="navigateFromChat(msg.link)">
+                {{ msg.linkLabel }} <mat-icon>open_in_new</mat-icon>
+              </a>
+            </div>
           </div>
+        </div>
+        <div class="command-list" *ngIf="showCommandList">
+          <div class="command-item" *ngFor="let cmd of helpCommands" (mousedown)="selectCommand(cmd.cmd)">
+            <span class="cmd-name">{{ cmd.cmd }}</span>
+            <span class="cmd-desc">{{ cmd.desc }}</span>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text"
+                 [(ngModel)]="helpInput"
+                 (input)="onHelpInput()"
+                 (keydown)="onHelpKeydown($event)"
+                 placeholder="Type / for commands...">
         </div>
       </ng-container>
     </div>
