@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ApiService } from '../../services/api.service';
 import { ToastService } from '../../services/toast.service';
+import { SettingsService } from '../../services/settings.service';
 
 @Component({
   selector: 'app-feature-request-dialog',
@@ -301,7 +302,7 @@ interface MeshNode {
         border: 1px solid var(--border);
 
         .card-overlay {
-          background: rgba(14, 165, 233, 0.06);
+          background: rgba(var(--primary-rgb, 14, 165, 233), 0.06);
         }
 
         .card-content {
@@ -422,7 +423,7 @@ interface MeshNode {
         left: calc(50% + 30px);
         width: calc(100% - 60px);
         height: 2px;
-        background: linear-gradient(to right, var(--primary, #0ea5e9), rgba(14, 165, 233, 0.4));
+        background: linear-gradient(to right, var(--primary, #0ea5e9), rgba(var(--primary-rgb, 14, 165, 233), 0.4));
       }
     }
 
@@ -515,7 +516,7 @@ interface MeshNode {
           left: 26px;
           width: 2px !important;
           height: calc(100% - 40px) !important;
-          background: linear-gradient(to bottom, var(--primary, #0ea5e9), rgba(14, 165, 233, 0.4)) !important;
+          background: linear-gradient(to bottom, var(--primary, #0ea5e9), rgba(var(--primary-rgb, 14, 165, 233), 0.4)) !important;
         }
       }
     }
@@ -539,15 +540,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     { name: 'View Reports', description: 'Analyze & export', icon: 'assessment', route: '/report' }
   ];
 
+  private primaryRgb = '14, 165, 233';
+
   constructor(
     private api: ApiService,
     private toast: ToastService,
     private dialog: MatDialog,
     private router: Router,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private settingsService: SettingsService
   ) {}
 
   ngOnInit() {
+    // Track primary color for mesh canvas
+    const colorOpt = this.settingsService.colorOptions.find(c => c.value === this.settingsService.current.primaryColor);
+    if (colorOpt) this.primaryRgb = colorOpt.rgb;
+
     this.api.getAnalyticsSummary().subscribe({
       next: (data) => {
         this.analytics = data;
@@ -597,9 +605,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     }
 
-    // Sky blue mesh color for both cards
-    const nodeColor = 'rgba(14, 165, 233, 0.5)';
-    const lineColor = (opacity: number) => `rgba(14, 165, 233, ${opacity})`;
+    // Use primary color for mesh
+    const rgb = this.primaryRgb;
+    const nodeColor = `rgba(${rgb}, 0.5)`;
+    const lineColor = (opacity: number) => `rgba(${rgb}, ${opacity})`;
 
     this.ngZone.runOutsideAngular(() => {
       const animate = () => {

@@ -1,8 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import { PageSearchService } from '../../services/page-search.service';
 
 @Component({
   selector: 'app-docs',
@@ -682,7 +685,7 @@ import { MatButtonModule } from '@angular/material/button';
 
     .info-box {
       background: var(--primary-light, #e0f2fe);
-      border: 1px solid rgba(14, 165, 233, 0.3);
+      border: 1px solid rgba(var(--primary-rgb, 14, 165, 233), 0.3);
 
       mat-icon { color: var(--primary, #0ea5e9); }
     }
@@ -1029,8 +1032,9 @@ import { MatButtonModule } from '@angular/material/button';
     }
   `]
 })
-export class DocsComponent {
+export class DocsComponent implements OnInit, OnDestroy {
   activeSection = '';
+  private searchSub!: Subscription;
 
   sections = [
     { id: 'getting-started', title: 'Getting Started', icon: 'rocket_launch' },
@@ -1094,8 +1098,80 @@ export class DocsComponent {
     }
   ];
 
+  constructor(
+    private pageSearchService: PageSearchService,
+    private elementRef: ElementRef
+  ) {}
+
+  ngOnInit() {
+    this.searchSub = this.pageSearchService.search$.pipe(
+      debounceTime(200)
+    ).subscribe(query => this.highlightText(query));
+  }
+
+  ngOnDestroy() {
+    this.searchSub.unsubscribe();
+    this.clearHighlights();
+  }
+
   scrollTo(id: string) {
     this.activeSection = id;
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  private highlightText(query: string) {
+    this.clearHighlights();
+    if (!query || query.length < 1) return;
+
+    const container = this.elementRef.nativeElement.querySelector('.docs-content');
+    if (!container) return;
+
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+    const matches: { node: Text; start: number; length: number }[] = [];
+    const lowerQuery = query.toLowerCase();
+
+    let node: Text | null;
+    while ((node = walker.nextNode() as Text | null)) {
+      const text = node.textContent || '';
+      const lower = text.toLowerCase();
+      let idx = lower.indexOf(lowerQuery);
+      while (idx !== -1) {
+        matches.push({ node, start: idx, length: query.length });
+        idx = lower.indexOf(lowerQuery, idx + query.length);
+      }
+    }
+
+    // Apply highlights in reverse order to preserve offsets
+    for (let i = matches.length - 1; i >= 0; i--) {
+      const { node: textNode, start, length } = matches[i];
+      const range = document.createRange();
+      range.setStart(textNode, start);
+      range.setEnd(textNode, start + length);
+      const mark = document.createElement('mark');
+      mark.className = 'search-highlight';
+      mark.style.background = '#fef08a';
+      mark.style.borderRadius = '2px';
+      mark.style.padding = '0 1px';
+      range.surroundContents(mark);
+    }
+
+    // Scroll to first match
+    const firstMark = container.querySelector('mark.search-highlight');
+    if (firstMark) {
+      firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  private clearHighlights() {
+    const container = this.elementRef.nativeElement.querySelector('.docs-content');
+    if (!container) return;
+    const marks = container.querySelectorAll('mark.search-highlight');
+    marks.forEach((mark: HTMLElement) => {
+      const parent = mark.parentNode;
+      if (parent) {
+        parent.replaceChild(document.createTextNode(mark.textContent || ''), mark);
+        parent.normalize();
+      }
+    });
   }
 }

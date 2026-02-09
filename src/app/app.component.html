@@ -23,12 +23,13 @@
       <div class="sidenav-footer">
         <mat-nav-list>
           <a mat-list-item
-             [routerLink]="docsNavItem.path"
+             *ngFor="let item of footerNavItems"
+             [routerLink]="item.path"
              routerLinkActive="active-link"
              [routerLinkActiveOptions]="{ exact: true }"
              class="nav-item">
-            <mat-icon matListItemIcon>{{ docsNavItem.icon }}</mat-icon>
-            <span matListItemTitle>{{ docsNavItem.label }}</span>
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
           </a>
         </mat-nav-list>
       </div>
@@ -37,7 +38,7 @@
     <mat-sidenav-content class="main-content">
       <mat-toolbar class="header">
         <button mat-icon-button (click)="toggleSidenav()" class="menu-toggle">
-          <mat-icon>{{ sidenavOpen ? 'view_sidebar' : 'view_sidebar' }}</mat-icon>
+          <mat-icon>menu</mat-icon>
         </button>
 
         <nav class="breadcrumbs">
@@ -53,7 +54,7 @@
             <mat-icon>search</mat-icon>
             <input #searchInput
                    type="text"
-                   placeholder="Search pages, actions, students..."
+                   [placeholder]="currentUrl === '/docs' ? 'Search in documentation...' : currentUrl === '/report' ? 'Filter students...' : 'Search pages, actions, students...'"
                    [(ngModel)]="searchQuery"
                    (input)="onSearchInput()"
                    (focus)="onSearchFocus()">
@@ -84,7 +85,8 @@
           </div>
         </div>
 
-        <button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="notification-btn">
+        <button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="notification-btn"
+                *ngIf="notificationsEnabled">
           <mat-icon [matBadge]="unreadCount > 0 ? unreadCount : null" matBadgeColor="warn" matBadgeSize="small">
             notifications
           </mat-icon>

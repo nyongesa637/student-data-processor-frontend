@@ -14,31 +14,28 @@
 /* Global styles */
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; }
 
 /* Toast notification styles */
-.toast-success {
-  --mdc-snackbar-container-color: #4caf50;
-  --mdc-snackbar-supporting-text-color: white;
-  --mat-snack-bar-button-color: white;
+.toast-neutral {
+  --mdc-snackbar-container-color: #ffffff;
+  --mdc-snackbar-supporting-text-color: #1f2937;
+  --mat-snack-bar-button-color: #1f2937;
 }
 
-.toast-error {
-  --mdc-snackbar-container-color: #f44336;
-  --mdc-snackbar-supporting-text-color: white;
-  --mat-snack-bar-button-color: white;
+.toast-neutral .mdc-snackbar__surface {
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
-.toast-info {
-  --mdc-snackbar-container-color: #0ea5e9;
-  --mdc-snackbar-supporting-text-color: white;
-  --mat-snack-bar-button-color: white;
+.dark-mode .toast-neutral {
+  --mdc-snackbar-container-color: #1f2937;
+  --mdc-snackbar-supporting-text-color: #f3f4f6;
+  --mat-snack-bar-button-color: #f3f4f6;
 }
 
-.toast-warning {
-  --mdc-snackbar-container-color: #ff9800;
-  --mdc-snackbar-supporting-text-color: white;
-  --mat-snack-bar-button-color: white;
+.dark-mode .toast-neutral .mdc-snackbar__surface {
+  border: 1px solid #374151 !important;
 }
 
 /* Scrollbar styling */
@@ -66,12 +63,22 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   flex-direction: column !important;
 }
 
+/* Sidenav container background */
+.mat-drawer-container {
+  background: var(--bg) !important;
+}
+
+.mat-drawer {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
 /* Smooth margin transition when sidenav opens/closes in side mode */
 .app-container .mat-drawer-content {
   transition: margin-left 0.3s ease !important;
 }
 
-/* Override Material primary button color to match sky blue theme */
+/* Override Material primary button color to match theme */
 .mat-mdc-raised-button.mat-primary,
 .mat-mdc-unelevated-button.mat-primary {
   --mdc-filled-button-container-color: var(--primary) !important;
@@ -82,7 +89,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   --mdc-text-button-label-text-color: var(--primary) !important;
 }
 
-/* Override form field focus colors to match sky blue theme */
+/* Override form field focus colors to match theme */
 .mat-mdc-form-field {
   --mdc-outlined-text-field-focus-outline-color: var(--primary);
   --mdc-outlined-text-field-focus-label-text-color: var(--primary);
@@ -94,9 +101,173 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   color: var(--primary);
 }
 
+/* Progress bar sky blue / primary color override */
+mat-progress-bar,
+.mat-mdc-progress-bar {
+  --mdc-linear-progress-active-indicator-color: var(--primary) !important;
+  --mdc-linear-progress-track-color: var(--primary-light) !important;
+}
+
+/* Mat-option selected/active highlight for dropdowns */
+.mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+  --mat-option-selected-state-layer-color: var(--primary-light);
+  --mat-option-label-text-color: var(--primary);
+
+  .mdc-list-item__primary-text {
+    color: var(--primary) !important;
+  }
+
+  &::before {
+    background: var(--primary-light) !important;
+    opacity: 1 !important;
+  }
+}
+
+.mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+  background: var(--primary-light) !important;
+}
+
+.mat-mdc-option:focus:not(.mdc-list-item--disabled) {
+  background: var(--primary-light) !important;
+}
+
+/* Mat-select panel (dropdown overlay) */
+.mat-mdc-select-panel {
+  background: var(--surface) !important;
+}
+
 /* Notification panel global styles (CDK overlay) */
 .notification-menu .mat-mdc-menu-panel {
   overflow-x: hidden;
   min-width: 380px !important;
   max-width: 420px !important;
+}
+
+/* Paginator theme */
+.mat-mdc-paginator {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+/* Mat-table theme */
+.mat-mdc-table {
+  background: var(--surface) !important;
+
+  .mat-mdc-header-cell {
+    background: var(--surface) !important;
+    color: var(--text-secondary) !important;
+  }
+
+  .mat-mdc-cell {
+    color: var(--text) !important;
+    border-bottom-color: var(--border) !important;
+  }
+
+  .mat-mdc-header-row {
+    border-bottom-color: var(--border) !important;
+  }
+
+  .mat-mdc-row:hover {
+    background: var(--primary-light) !important;
+  }
+}
+
+/* Mat-card theme */
+.mat-mdc-card {
+  --mdc-elevated-card-container-color: var(--surface);
+  --mdc-outlined-card-container-color: var(--surface);
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+/* Mat-toolbar theme */
+.mat-toolbar {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+/* Mat-menu theme */
+.mat-mdc-menu-panel {
+  background: var(--surface) !important;
+}
+
+.mat-mdc-menu-item {
+  color: var(--text) !important;
+}
+
+/* Mat-dialog/overlay theme */
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+/* Slide toggle primary color */
+.mat-mdc-slide-toggle.mat-primary {
+  --mdc-switch-selected-track-color: var(--primary) !important;
+  --mdc-switch-selected-handle-color: var(--primary) !important;
+  --mdc-switch-selected-hover-track-color: var(--primary) !important;
+  --mdc-switch-selected-focus-track-color: var(--primary) !important;
+  --mdc-switch-selected-pressed-track-color: var(--primary) !important;
+  --mdc-switch-selected-hover-handle-color: var(--primary) !important;
+  --mdc-switch-selected-focus-handle-color: var(--primary) !important;
+  --mdc-switch-selected-pressed-handle-color: var(--primary) !important;
+}
+
+/* Dark mode scrollbar */
+.dark-mode {
+  ::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+
+  /* Dark mode mat-list */
+  .mat-mdc-list-item {
+    color: var(--text) !important;
+  }
+
+  .mat-mdc-nav-list .mat-mdc-list-item {
+    --mdc-list-list-item-label-text-color: var(--text-secondary);
+  }
+
+  /* Dark mode text color on form fields */
+  .mat-mdc-form-field {
+    --mdc-outlined-text-field-label-text-color: var(--text-secondary);
+    --mdc-outlined-text-field-input-text-color: var(--text);
+    --mdc-outlined-text-field-outline-color: var(--border);
+    --mdc-outlined-text-field-hover-outline-color: var(--text-muted);
+  }
+
+  .mat-mdc-select-value {
+    color: var(--text) !important;
+  }
+
+  .mat-mdc-select-arrow {
+    color: var(--text-muted) !important;
+  }
+
+  /* Paginator dark */
+  .mat-mdc-paginator {
+    --mat-paginator-container-text-color: var(--text);
+    --mat-paginator-enabled-icon-color: var(--text-secondary);
+    --mat-paginator-disabled-icon-color: var(--text-muted);
+  }
+
+  .mat-mdc-icon-button {
+    color: var(--text-secondary) !important;
+  }
+
+  /* Stroked buttons */
+  .mat-mdc-outlined-button:not(.mat-primary) {
+    --mdc-outlined-button-label-text-color: var(--text);
+    --mdc-outlined-button-outline-color: var(--border);
+  }
+
+  /* Snackbar toast overrides stay the same since they have their own background colors */
 }

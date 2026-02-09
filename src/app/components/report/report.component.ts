@@ -12,8 +12,10 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { ApiService } from '../../services/api.service';
 import { ToastService } from '../../services/toast.service';
+import { PageSearchService } from '../../services/page-search.service';
 
 interface Student {
   id: number;
@@ -91,7 +93,15 @@ interface Student {
                 <td mat-cell *matCellDef="let s">{{ s.lastName }}</td>
               </ng-container>
               <ng-container matColumnDef="dob">
-                <th mat-header-cell *matHeaderCellDef>Date of Birth</th>
+                <th mat-header-cell *matHeaderCellDef class="sortable-header">
+                  <div class="header-sort">
+                    <span class="header-text">Date of Birth</span>
+                    <span class="sort-arrows">
+                      <mat-icon class="sort-arrow up" [class.active]="sortBy === 'dob' && sortDir === 'asc'" (click)="toggleSort('dob', 'asc')">arrow_drop_up</mat-icon>
+                      <mat-icon class="sort-arrow down" [class.active]="sortBy === 'dob' && sortDir === 'desc'" (click)="toggleSort('dob', 'desc')">arrow_drop_down</mat-icon>
+                    </span>
+                  </div>
+                </th>
                 <td mat-cell *matCellDef="let s">{{ s.dob }}</td>
               </ng-container>
               <ng-container matColumnDef="studentClass">
@@ -99,7 +109,15 @@ interface Student {
                 <td mat-cell *matCellDef="let s">{{ s.studentClass }}</td>
               </ng-container>
               <ng-container matColumnDef="score">
-                <th mat-header-cell *matHeaderCellDef>Score</th>
+                <th mat-header-cell *matHeaderCellDef class="sortable-header">
+                  <div class="header-sort">
+                    <span class="header-text">Score</span>
+                    <span class="sort-arrows">
+                      <mat-icon class="sort-arrow up" [class.active]="sortBy === 'score' && sortDir === 'asc'" (click)="toggleSort('score', 'asc')">arrow_drop_up</mat-icon>
+                      <mat-icon class="sort-arrow down" [class.active]="sortBy === 'score' && sortDir === 'desc'" (click)="toggleSort('score', 'desc')">arrow_drop_down</mat-icon>
+                    </span>
+                  </div>
+                </th>
                 <td mat-cell *matCellDef="let s">{{ s.score }}</td>
               </ng-container>
 
@@ -239,6 +257,58 @@ interface Student {
     .table-container { overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
     table { width: 100%; min-width: 600px; }
 
+    /* Sortable column header */
+    .sortable-header {
+      cursor: default;
+    }
+
+    .header-sort {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .header-text {
+      /* This text determines the alignment anchor for the column data */
+    }
+
+    .sort-arrows {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      margin-left: 2px;
+      line-height: 0;
+    }
+
+    .sort-arrow {
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 12px !important;
+      cursor: pointer;
+      color: var(--text-muted, #9ca3af);
+      transition: color 0.15s;
+      overflow: hidden;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        color: var(--primary);
+      }
+
+      &.active {
+        color: var(--primary);
+      }
+
+      &.up {
+        margin-bottom: -2px;
+      }
+
+      &.down {
+        margin-top: -2px;
+      }
+    }
+
     /* Mobile floating action bar */
     .mobile-fab {
       position: fixed;
@@ -249,7 +319,7 @@ interface Student {
       align-items: center;
       background: var(--primary, #0ea5e9);
       border-radius: 28px;
-      box-shadow: 0 4px 16px rgba(14, 165, 233, 0.35);
+      box-shadow: 0 4px 16px rgba(var(--primary-rgb), 0.35);
       z-index: 100;
       overflow: hidden;
 
@@ -409,6 +479,9 @@ export class ReportComponent implements OnInit, OnDestroy {
   exportFormat = '';
   classes: string[] = [];
 
+  sortBy = '';
+  sortDir = '';
+
   isMobile = false;
   showFilterDrawer = false;
   showExportDrawer = false;
@@ -418,7 +491,8 @@ export class ReportComponent implements OnInit, OnDestroy {
   constructor(
     private api: ApiService,
     private toast: ToastService,
-    private breakpointObserver: BreakpointObserver
+    private breakpointObserver: BreakpointObserver,
+    private pageSearchService: PageSearchService
   ) {}
 
   ngOnInit() {
@@ -429,6 +503,16 @@ export class ReportComponent implements OnInit, OnDestroy {
           this.showFilterDrawer = false;
           this.showExportDrawer = false;
         }
+      })
+    );
+
+    this.subs.push(
+      this.pageSearchService.search$.pipe(
+        debounceTime(300)
+      ).subscribe(query => {
+        this.searchId = query;
+        this.currentPage = 0;
+        this.loadData();
       })
     );
 
@@ -445,8 +529,11 @@ export class ReportComponent implements OnInit, OnDestroy {
 
   loadData() {
     this.loading = true;
-    this.api.getStudents(this.currentPage, this.pageSize, this.searchId || undefined, this.filterClass || undefined)
-      .subscribe({
+    this.api.getStudents(
+      this.currentPage, this.pageSize,
+      this.searchId || undefined, this.filterClass || undefined,
+      this.sortBy || undefined, this.sortDir || undefined
+    ).subscribe({
         next: (res) => {
           this.students = res.content;
           this.totalElements = res.totalElements;
@@ -467,6 +554,18 @@ export class ReportComponent implements OnInit, OnDestroy {
   onPageChange(event: PageEvent) {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
+    this.loadData();
+  }
+
+  toggleSort(field: string, dir: string) {
+    if (this.sortBy === field && this.sortDir === dir) {
+      this.sortBy = '';
+      this.sortDir = '';
+    } else {
+      this.sortBy = field;
+      this.sortDir = dir;
+    }
+    this.currentPage = 0;
     this.loadData();
   }
 

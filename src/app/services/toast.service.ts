@@ -8,36 +8,36 @@ export class ToastService {
   success(message: string, duration = 4000) {
     this.snackBar.open(message, 'Close', {
       duration,
-      panelClass: ['toast-success'],
-      horizontalPosition: 'right',
-      verticalPosition: 'bottom'
+      panelClass: ['toast-neutral'],
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
     });
   }
 
   error(message: string, duration = 5000) {
     this.snackBar.open(message, 'Close', {
       duration,
-      panelClass: ['toast-error'],
-      horizontalPosition: 'right',
-      verticalPosition: 'bottom'
+      panelClass: ['toast-neutral'],
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
     });
   }
 
   info(message: string, duration = 4000) {
     this.snackBar.open(message, 'Close', {
       duration,
-      panelClass: ['toast-info'],
-      horizontalPosition: 'right',
-      verticalPosition: 'bottom'
+      panelClass: ['toast-neutral'],
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
     });
   }
 
   warning(message: string, duration = 4000) {
     this.snackBar.open(message, 'Close', {
       duration,
-      panelClass: ['toast-warning'],
-      horizontalPosition: 'right',
-      verticalPosition: 'bottom'
+      panelClass: ['toast-neutral'],
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
     });
   }
 }

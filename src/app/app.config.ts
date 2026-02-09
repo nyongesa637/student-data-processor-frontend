@@ -9,6 +9,9 @@ import { DataProcessingComponent } from './components/data-processing/data-proce
 import { DataUploadComponent } from './components/data-upload/data-upload.component';
 import { ReportComponent } from './components/report/report.component';
 import { DocsComponent } from './components/docs/docs.component';
+import { SettingsComponent } from './components/settings/settings.component';
+import { NotFoundComponent } from './components/not-found/not-found.component';
+import { ErrorComponent } from './components/error/error.component';
 import { provideServiceWorker } from '@angular/service-worker';
 
 const routes: Routes = [
@@ -19,7 +22,9 @@ const routes: Routes = [
   { path: 'upload', component: DataUploadComponent, data: { title: 'Upload CSV' } },
   { path: 'report', component: ReportComponent, data: { title: 'Report' } },
   { path: 'docs', component: DocsComponent, data: { title: 'Documentation' } },
-  { path: '**', redirectTo: 'home' }
+  { path: 'settings', component: SettingsComponent, data: { title: 'Settings' } },
+  { path: 'error', component: ErrorComponent, data: { title: 'Error' } },
+  { path: '**', component: NotFoundComponent, data: { title: 'Page Not Found' } }
 ];
 
 export const appConfig: ApplicationConfig = {

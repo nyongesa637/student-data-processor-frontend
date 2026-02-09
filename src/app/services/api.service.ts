@@ -26,12 +26,14 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/upload`, formData);
   }
 
-  getStudents(page: number, size: number, search?: string, studentClass?: string): Observable<any> {
+  getStudents(page: number, size: number, search?: string, studentClass?: string, sortBy?: string, sortDir?: string): Observable<any> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
     if (search) params = params.set('search', search);
     if (studentClass) params = params.set('studentClass', studentClass);
+    if (sortBy) params = params.set('sortBy', sortBy);
+    if (sortDir) params = params.set('sortDir', sortDir);
     return this.http.get(`${this.baseUrl}/students`, { params });
   }
 

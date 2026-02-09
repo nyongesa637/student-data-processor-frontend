@@ -13,6 +13,8 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { NotificationService, Notification } from './services/notification.service';
 import { ApiService } from './services/api.service';
 import { ChangelogService, ChangelogEntry, ChangelogFilter } from './services/changelog.service';
+import { SettingsService } from './services/settings.service';
+import { PageSearchService } from './services/page-search.service';
 import { Subscription, filter, Subject, debounceTime, switchMap, of } from 'rxjs';
 
 interface NavItem {
@@ -53,6 +55,8 @@ export class AppComponent implements OnInit, OnDestroy {
   unreadCount = 0;
   notifications: Notification[] = [];
   isMobile = false;
+  notificationsEnabled = true;
+  currentUrl = '';
 
   // Search
   searchQuery = '';
@@ -81,7 +85,8 @@ export class AppComponent implements OnInit, OnDestroy {
     { cmd: '/process', desc: 'How to process Excel files', route: '/process', response: 'Navigate to the Process Excel page to convert Excel files to CSV format.' },
     { cmd: '/upload', desc: 'How to upload CSV data', route: '/upload', response: 'Navigate to the Upload CSV page to import data into the database.' },
     { cmd: '/report', desc: 'How to view reports', route: '/report', response: 'Navigate to the Report page to view, search, filter, and export student data.' },
-    { cmd: '/docs', desc: 'View full documentation', route: '/docs', response: 'Visit the documentation page for comprehensive guides on all features.' }
+    { cmd: '/docs', desc: 'View full documentation', route: '/docs', response: 'Visit the documentation page for comprehensive guides on all features.' },
+    { cmd: '/settings', desc: 'Open app settings', route: '/settings', response: 'Navigate to the Settings page to customize theme, colors, and notifications.' }
   ];
 
   navItems: NavItem[] = [
@@ -92,7 +97,10 @@ export class AppComponent implements OnInit, OnDestroy {
     { path: '/report', label: 'Report', icon: 'assessment' }
   ];
 
-  docsNavItem: NavItem = { path: '/docs', label: 'Documentation', icon: 'menu_book' };
+  footerNavItems: NavItem[] = [
+    { path: '/docs', label: 'Documentation', icon: 'menu_book' },
+    { path: '/settings', label: 'Settings', icon: 'settings' }
+  ];
 
   @ViewChild('searchInput') searchInput!: ElementRef;
 
@@ -103,7 +111,9 @@ export class AppComponent implements OnInit, OnDestroy {
     public notificationService: NotificationService,
     private api: ApiService,
     private breakpointObserver: BreakpointObserver,
-    private changelogService: ChangelogService
+    private changelogService: ChangelogService,
+    private settingsService: SettingsService,
+    private pageSearchService: PageSearchService
   ) {}
 
   ngOnInit() {
@@ -111,7 +121,10 @@ export class AppComponent implements OnInit, OnDestroy {
       this.router.events.pipe(
         filter((e): e is NavigationEnd => e instanceof NavigationEnd)
       ).subscribe((event) => {
+        this.currentUrl = event.urlAfterRedirects;
         this.updateBreadcrumbs(event.urlAfterRedirects);
+        this.searchQuery = '';
+        this.showSearchDropdown = false;
       })
     );
 
@@ -120,6 +133,14 @@ export class AppComponent implements OnInit, OnDestroy {
     );
     this.subs.push(
       this.notificationService.notifications$.subscribe(n => this.notifications = n)
+    );
+
+    // Settings - notifications toggle
+    this.subs.push(
+      this.settingsService.settings$.subscribe(s => {
+        this.notificationsEnabled = s.notificationsEnabled;
+        this.notificationService.setEnabled(s.notificationsEnabled);
+      })
     );
 
     // Responsive
@@ -184,8 +205,20 @@ export class AppComponent implements OnInit, OnDestroy {
     this.sidenavOpen = !this.sidenavOpen;
   }
 
+  get isPageSpecificSearch(): boolean {
+    return this.currentUrl === '/docs' || this.currentUrl === '/report';
+  }
+
   onSearchInput() {
     const q = this.searchQuery.trim();
+
+    // On docs/report pages, emit to page-specific handler instead
+    if (this.isPageSpecificSearch) {
+      this.showSearchDropdown = false;
+      this.pageSearchService.search$.next(q);
+      return;
+    }
+
     if (q.length < 2) {
       this.buildSearchResults([]);
       return;
@@ -197,6 +230,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onSearchFocus() {
+    if (this.isPageSpecificSearch) return;
     if (this.searchQuery.trim().length >= 2) {
       this.showSearchDropdown = true;
     }
@@ -209,7 +243,7 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const allNav = [...this.navItems, this.docsNavItem];
+    const allNav = [...this.navItems, ...this.footerNavItems];
     const pages: SearchResult[] = allNav
       .filter(n => n.label.toLowerCase().includes(q))
       .map(n => ({ group: 'Pages', icon: n.icon, text: n.label, route: n.path }));
@@ -347,9 +381,11 @@ export class AppComponent implements OnInit, OnDestroy {
       '/process': 'Process Excel',
       '/upload': 'Upload CSV',
       '/report': 'Report',
-      '/docs': 'Documentation'
+      '/docs': 'Documentation',
+      '/settings': 'Settings',
+      '/error': 'Error'
     };
-    const title = titleMap[url] || 'Home';
+    const title = titleMap[url] || 'Page Not Found';
     this.breadcrumbs = url === '/home' ? ['Home'] : ['Home', title];
   }
 }

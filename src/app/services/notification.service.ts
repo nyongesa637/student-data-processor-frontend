@@ -17,13 +17,25 @@ export class NotificationService {
   unreadCount$ = new BehaviorSubject<number>(0);
 
   private pollInterval: any;
+  private enabled = true;
 
   constructor(private api: ApiService) {
     this.refresh();
     this.startPolling();
   }
 
+  setEnabled(enabled: boolean) {
+    this.enabled = enabled;
+    if (!enabled) {
+      this.notifications$.next([]);
+      this.unreadCount$.next(0);
+    } else {
+      this.refresh();
+    }
+  }
+
   refresh() {
+    if (!this.enabled) return;
     this.api.getNotifications().subscribe({
       next: (data) => this.notifications$.next(data),
       error: () => {}
