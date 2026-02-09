@@ -63,8 +63,10 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/feature-requests`, data);
   }
 
-  getChangelog(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/changelog`);
+  getChangelog(component?: string): Observable<any[]> {
+    let params = new HttpParams();
+    if (component) params = params.set('component', component);
+    return this.http.get<any[]>(`${this.baseUrl}/changelog`, { params });
   }
 
   exportExcel(search?: string, studentClass?: string): Observable<Blob> {

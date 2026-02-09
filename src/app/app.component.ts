@@ -12,6 +12,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { NotificationService, Notification } from './services/notification.service';
 import { ApiService } from './services/api.service';
+import { ChangelogService, ChangelogEntry, ChangelogFilter } from './services/changelog.service';
 import { Subscription, filter, Subject, debounceTime, switchMap, of } from 'rxjs';
 
 interface NavItem {
@@ -55,8 +56,9 @@ export class AppComponent implements OnInit, OnDestroy {
   // Chat
   chatOpen = false;
   chatTab: 'changelog' | 'help' = 'changelog';
-  changelog: any[] = [];
+  changelog: ChangelogEntry[] = [];
   changelogCount = 0;
+  componentFilter: ChangelogFilter = 'ALL';
 
   navItems: NavItem[] = [
     { path: '/home', label: 'Home', icon: 'home' },
@@ -84,7 +86,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private router: Router,
     public notificationService: NotificationService,
     private api: ApiService,
-    private breakpointObserver: BreakpointObserver
+    private breakpointObserver: BreakpointObserver,
+    private changelogService: ChangelogService
   ) {}
 
   ngOnInit() {
@@ -133,14 +136,13 @@ export class AppComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Load changelog
-    this.api.getChangelog().subscribe({
-      next: (data) => {
-        this.changelog = data || [];
-        this.changelogCount = this.changelog.length;
-      },
-      error: () => {}
-    });
+    // Subscribe to changelog
+    this.subs.push(
+      this.changelogService.filteredEntries$.subscribe(entries => {
+        this.changelog = entries;
+        this.changelogCount = entries.length;
+      })
+    );
   }
 
   ngOnDestroy() {
@@ -222,6 +224,11 @@ export class AppComponent implements OnInit, OnDestroy {
   navigateHelp(route: string) {
     this.router.navigate([route]);
     this.chatOpen = false;
+  }
+
+  onComponentFilterChange(filter: ChangelogFilter) {
+    this.componentFilter = filter;
+    this.changelogService.setFilter(filter);
   }
 
   formatChangelogDate(dateStr: string): string {

@@ -117,11 +117,17 @@
     </div>
     <div class="chat-body">
       <ng-container *ngIf="chatTab === 'changelog'">
+        <div class="changelog-filters">
+          <button [class.active]="componentFilter === 'ALL'" (click)="onComponentFilterChange('ALL')">All</button>
+          <button [class.active]="componentFilter === 'FRONTEND'" (click)="onComponentFilterChange('FRONTEND')">Frontend</button>
+          <button [class.active]="componentFilter === 'BACKEND'" (click)="onComponentFilterChange('BACKEND')">Backend</button>
+        </div>
         <div *ngIf="changelog.length === 0" class="no-results">No changelog entries yet.</div>
         <div class="changelog-item" *ngFor="let entry of changelog">
-          <span class="changelog-version">{{ entry.version || 'v1.0' }}</span>
-          <span class="changelog-date">{{ formatChangelogDate(entry.date || entry.createdAt) }}</span>
-          <div class="changelog-text">{{ entry.description || entry.message }}</div>
+          <span class="changelog-version">{{ entry.version }}</span>
+          <span class="changelog-component" [attr.data-component]="entry.component">{{ entry.component }}</span>
+          <span class="changelog-date">{{ formatChangelogDate(entry.releaseDate) }}</span>
+          <div class="changelog-text">{{ entry.changes }}</div>
         </div>
       </ng-container>
       <ng-container *ngIf="chatTab === 'help'">
