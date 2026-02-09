@@ -1,3 +1,163 @@
-mat-toolbar {
-  margin-bottom: 16px;
+.app-container {
+  height: 100vh;
+}
+
+.sidenav {
+  width: 240px;
+  background: #1a1a2e;
+  transition: width 0.3s ease;
+  overflow-x: hidden;
+
+  &.collapsed {
+    width: 64px;
+  }
+
+  .sidenav-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    min-height: 64px;
+
+    .app-logo {
+      color: #7c4dff;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+
+    .app-title {
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+  }
+
+  .nav-item {
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    margin: 4px 8px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(124, 77, 255, 0.15);
+      color: white;
+    }
+
+    &.active-link {
+      background: rgba(124, 77, 255, 0.25);
+      color: #7c4dff;
+    }
+
+    mat-icon {
+      color: inherit;
+    }
+  }
+}
+
+.main-content {
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background: white;
+  color: #333;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 64px;
+
+  .menu-toggle {
+    color: #555;
+  }
+
+  .breadcrumbs {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+    font-size: 14px;
+
+    .breadcrumb-link {
+      color: #7c4dff;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .breadcrumb-current {
+      color: #555;
+      font-weight: 500;
+    }
+
+    .breadcrumb-separator {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #999;
+      margin: 0 2px;
+    }
+  }
+
+  .spacer {
+    flex: 1;
+  }
+
+  .notification-btn {
+    color: #555;
+  }
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid #eee;
+  min-width: 300px;
+}
+
+.notification-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: #999;
+  min-width: 300px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 56px;
+
+  &.unread {
+    background: rgba(124, 77, 255, 0.05);
+  }
+
+  .notification-content {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.4;
+
+    .notification-message {
+      font-size: 13px;
+    }
+
+    .notification-time {
+      font-size: 11px;
+      color: #999;
+    }
+  }
+}
+
+.page-content {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
 }

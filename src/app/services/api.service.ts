@@ -26,32 +26,64 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/upload`, formData);
   }
 
-  getStudents(page: number, size: number, studentId?: string, studentClass?: string): Observable<any> {
+  getStudents(page: number, size: number, search?: string, studentClass?: string): Observable<any> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
-    if (studentId) params = params.set('studentId', studentId);
+    if (search) params = params.set('search', search);
     if (studentClass) params = params.set('studentClass', studentClass);
     return this.http.get(`${this.baseUrl}/students`, { params });
   }
 
-  exportExcel(studentId?: string, studentClass?: string): Observable<Blob> {
+  getClasses(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/students/classes`);
+  }
+
+  getAnalyticsSummary(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/analytics/summary`);
+  }
+
+  getNotifications(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/notifications`);
+  }
+
+  getUnreadNotificationCount(): Observable<number> {
+    return this.http.get<number>(`${this.baseUrl}/notifications/unread-count`);
+  }
+
+  markNotificationRead(id: number): Observable<any> {
+    return this.http.put(`${this.baseUrl}/notifications/${id}/read`, null);
+  }
+
+  markAllNotificationsRead(): Observable<any> {
+    return this.http.put(`${this.baseUrl}/notifications/read-all`, null);
+  }
+
+  submitFeatureRequest(data: { title: string; description: string; email: string }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/feature-requests`, data);
+  }
+
+  getChangelog(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/changelog`);
+  }
+
+  exportExcel(search?: string, studentClass?: string): Observable<Blob> {
     let params = new HttpParams();
-    if (studentId) params = params.set('studentId', studentId);
+    if (search) params = params.set('search', search);
     if (studentClass) params = params.set('studentClass', studentClass);
     return this.http.get(`${this.baseUrl}/students/export/excel`, { params, responseType: 'blob' });
   }
 
-  exportCsv(studentId?: string, studentClass?: string): Observable<Blob> {
+  exportCsv(search?: string, studentClass?: string): Observable<Blob> {
     let params = new HttpParams();
-    if (studentId) params = params.set('studentId', studentId);
+    if (search) params = params.set('search', search);
     if (studentClass) params = params.set('studentClass', studentClass);
     return this.http.get(`${this.baseUrl}/students/export/csv`, { params, responseType: 'blob' });
   }
 
-  exportPdf(studentId?: string, studentClass?: string): Observable<Blob> {
+  exportPdf(search?: string, studentClass?: string): Observable<Blob> {
     let params = new HttpParams();
-    if (studentId) params = params.set('studentId', studentId);
+    if (search) params = params.set('search', search);
     if (studentClass) params = params.set('studentClass', studentClass);
     return this.http.get(`${this.baseUrl}/students/export/pdf`, { params, responseType: 'blob' });
   }

@@ -6,16 +6,20 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatIconModule } from '@angular/material/icon';
 import { ApiService } from '../../services/api.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-data-generation',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressBarModule],
+  imports: [CommonModule, FormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressBarModule, MatIconModule],
   template: `
-    <mat-card>
+    <mat-card class="gen-card">
       <mat-card-header>
-        <mat-card-title>Generate Student Data (Excel)</mat-card-title>
+        <mat-card-title>
+          <mat-icon>dataset</mat-icon> Generate Student Data (Excel)
+        </mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <mat-form-field appearance="outline" class="full-width">
@@ -25,6 +29,7 @@ import { ApiService } from '../../services/api.service';
       </mat-card-content>
       <mat-card-actions>
         <button mat-raised-button color="primary" (click)="generate()" [disabled]="loading || !count">
+          <mat-icon>play_arrow</mat-icon>
           {{ loading ? 'Generating...' : 'Generate Excel' }}
         </button>
       </mat-card-actions>
@@ -35,10 +40,12 @@ import { ApiService } from '../../services/api.service';
     </mat-card>
   `,
   styles: [`
-    mat-card { max-width: 600px; margin: 20px auto; }
+    .gen-card { max-width: 600px; }
+    mat-card-title { display: flex; align-items: center; gap: 8px; }
     .full-width { width: 100%; }
     .success { color: green; margin-top: 16px; }
     .error { color: red; margin-top: 16px; }
+    button mat-icon { margin-right: 4px; }
   `]
 })
 export class DataGenerationComponent {
@@ -47,7 +54,7 @@ export class DataGenerationComponent {
   message = '';
   success = false;
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private toast: ToastService) {}
 
   generate() {
     this.loading = true;
@@ -57,11 +64,13 @@ export class DataGenerationComponent {
         this.loading = false;
         this.success = true;
         this.message = `Generated ${this.count} records. File: ${res.filename}`;
+        this.toast.success(`Generated ${this.count} records successfully`);
       },
       error: (err) => {
         this.loading = false;
         this.success = false;
         this.message = 'Error: ' + (err.error?.error || err.message);
+        this.toast.error('Failed to generate data');
       }
     });
   }
