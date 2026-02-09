@@ -15,20 +15,10 @@
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  transition: width 0.3s ease;
   overflow: hidden;
 
   --mdc-list-list-item-label-text-size: 13px;
   --mdc-list-list-item-one-line-container-height: 40px;
-
-  &.collapsed {
-    width: 64px;
-
-    .nav-item {
-      justify-content: center;
-      padding: 0 8px;
-    }
-  }
 
   .sidenav-header {
     display: flex;
@@ -406,10 +396,66 @@
     display: flex;
     flex-direction: column;
 
+    /* Changelog detail */
+    .changelog-detail {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+
+      .changelog-back {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 16px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--primary);
+        border-bottom: 1px solid var(--border);
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+
+        &:hover {
+          background: var(--primary-light);
+        }
+      }
+
+      .changelog-detail-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 14px 16px 8px;
+      }
+
+      .changelog-detail-body {
+        font-size: 13px;
+        color: var(--text);
+        line-height: 1.6;
+        padding: 0 16px 12px;
+        white-space: pre-wrap;
+      }
+
+      .changelog-email-footer {
+        padding: 0 16px 14px;
+      }
+    }
+
     /* Changelog email style */
     .changelog-email {
       padding: 14px 16px;
       border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+
+      &:hover {
+        background: var(--bg);
+      }
 
       &:last-child { border-bottom: none; }
 
@@ -461,6 +507,10 @@
         color: var(--text-secondary);
         line-height: 1.5;
         margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
 
       .changelog-email-footer {
@@ -475,8 +525,8 @@
         letter-spacing: 0.3px;
         padding: 2px 8px;
         border-radius: 4px;
-        background: #e3f2fd;
-        color: #1565c0;
+        background: var(--primary-light);
+        color: var(--primary);
       }
     }
 

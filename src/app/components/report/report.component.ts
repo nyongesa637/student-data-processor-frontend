@@ -42,38 +42,39 @@ interface Student {
           </mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <!-- Desktop filters -->
-          <div class="filters" *ngIf="!isMobile">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label>Search by Student ID</mat-label>
-              <input matInput [(ngModel)]="searchId" (keyup.enter)="search()">
-            </mat-form-field>
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label>Filter by Class</mat-label>
-              <mat-select [(ngModel)]="filterClass" (selectionChange)="search()">
-                <mat-option value="">All Classes</mat-option>
-                <mat-option *ngFor="let c of classes; trackBy: trackByClass" [value]="c">{{ c }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <button mat-raised-button class="action-btn" (click)="search()">
-              <mat-icon>search</mat-icon> Search
-            </button>
+          <!-- Desktop filters + export -->
+          <div class="toolbar-row" *ngIf="!isMobile">
+            <div class="filters">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="compact-field">
+                <mat-label>Search by Student ID</mat-label>
+                <input matInput [(ngModel)]="searchId" (keyup.enter)="search()">
+              </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="compact-field">
+                <mat-label>Filter by Class</mat-label>
+                <mat-select [(ngModel)]="filterClass" (selectionChange)="search()">
+                  <mat-option value="">All Classes</mat-option>
+                  <mat-option *ngFor="let c of classes; trackBy: trackByClass" [value]="c">{{ c }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <button mat-raised-button class="action-btn compact-btn" (click)="search()">
+                <mat-icon>search</mat-icon> Search
+              </button>
+            </div>
+            <div class="export-buttons">
+              <button mat-stroked-button class="compact-btn" (click)="exportData('excel')">
+                <mat-icon>table_chart</mat-icon> Excel
+              </button>
+              <button mat-stroked-button class="compact-btn" (click)="exportData('csv')">
+                <mat-icon>description</mat-icon> CSV
+              </button>
+              <button mat-stroked-button class="compact-btn" (click)="exportData('pdf')">
+                <mat-icon>picture_as_pdf</mat-icon> PDF
+              </button>
+            </div>
           </div>
 
-          <!-- Desktop export buttons -->
-          <div class="export-buttons" *ngIf="!isMobile">
-            <button mat-stroked-button (click)="exportData('excel')">
-              <mat-icon>table_chart</mat-icon> Export Excel
-            </button>
-            <button mat-stroked-button (click)="exportData('csv')">
-              <mat-icon>description</mat-icon> Export CSV
-            </button>
-            <button mat-stroked-button (click)="exportData('pdf')">
-              <mat-icon>picture_as_pdf</mat-icon> Export PDF
-            </button>
-          </div>
-
-          <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+          <mat-progress-bar *ngIf="loading || exporting" mode="indeterminate"></mat-progress-bar>
+          <div class="export-status" *ngIf="exporting">Exporting {{ exportFormat }}...</div>
 
           <div class="table-container">
             <table mat-table [dataSource]="students" class="full-width">
@@ -198,10 +199,31 @@ interface Student {
     .report-container { position: relative; }
     .report-card { max-width: 1200px; margin: 0 auto; }
     mat-card-title { display: flex; align-items: center; gap: 8px; }
-    .filters { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
-    .filters mat-form-field { font-size: 13px; }
-    .export-buttons { display: flex; gap: 8px; margin-bottom: 16px; }
-    .export-buttons button mat-icon { margin-right: 4px; font-size: 18px; width: 18px; height: 18px; }
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .compact-field {
+      font-size: 12px;
+      --mdc-outlined-text-field-container-shape: 6px;
+      --mat-form-field-container-height: 36px;
+      --mat-form-field-container-vertical-padding: 6px;
+      width: 170px;
+    }
+    .compact-btn {
+      height: 36px !important;
+      font-size: 13px !important;
+      padding: 0 12px !important;
+      line-height: 36px !important;
+    }
+    .export-buttons { display: flex; gap: 6px; }
+    .export-buttons button mat-icon { margin-right: 2px; font-size: 18px; width: 18px; height: 18px; }
+    .export-status { font-size: 13px; color: var(--text-secondary); padding: 8px 0 4px; }
     .full-width { width: 100%; }
     .action-btn {
       background: var(--primary, #0ea5e9) !important;
@@ -383,6 +405,8 @@ export class ReportComponent implements OnInit, OnDestroy {
   searchId = '';
   filterClass = '';
   loading = false;
+  exporting = false;
+  exportFormat = '';
   classes: string[] = [];
 
   isMobile = false;
@@ -452,6 +476,9 @@ export class ReportComponent implements OnInit, OnDestroy {
                      this.api.exportPdf.bind(this.api);
     const ext = format === 'excel' ? 'xlsx' : format;
 
+    this.exporting = true;
+    this.exportFormat = format.toUpperCase();
+
     exportFn(this.searchId || undefined, this.filterClass || undefined).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -460,9 +487,11 @@ export class ReportComponent implements OnInit, OnDestroy {
         a.download = `students.${ext}`;
         a.click();
         window.URL.revokeObjectURL(url);
+        this.exporting = false;
         this.toast.success(`Exported as ${format.toUpperCase()} successfully`);
       },
       error: () => {
+        this.exporting = false;
         this.toast.error(`Failed to export ${format.toUpperCase()}`);
       }
     });

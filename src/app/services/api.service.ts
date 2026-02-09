@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, timeout } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -87,6 +87,8 @@ export class ApiService {
     let params = new HttpParams();
     if (search) params = params.set('search', search);
     if (studentClass) params = params.set('studentClass', studentClass);
-    return this.http.get(`${this.baseUrl}/students/export/pdf`, { params, responseType: 'blob' });
+    return this.http.get(`${this.baseUrl}/students/export/pdf`, { params, responseType: 'blob' }).pipe(
+      timeout(120000)
+    );
   }
 }

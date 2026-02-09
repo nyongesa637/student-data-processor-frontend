@@ -1,13 +1,12 @@
 <div class="app-shell">
   <mat-sidenav-container class="app-container">
-    <mat-sidenav [opened]="isMobile ? sidenavOpen : true"
+    <mat-sidenav [opened]="sidenavOpen"
                  [mode]="isMobile ? 'over' : 'side'"
-                 [class.collapsed]="!sidenavOpen && !isMobile"
                  class="sidenav"
-                 (closedStart)="isMobile ? sidenavOpen = false : null">
+                 (closedStart)="sidenavOpen = false">
       <div class="sidenav-header">
         <mat-icon class="app-logo">school</mat-icon>
-        <span class="app-title" *ngIf="sidenavOpen || isMobile">SDP</span>
+        <span class="app-title">SDP</span>
       </div>
       <div class="sidenav-nav">
         <mat-nav-list>
@@ -17,7 +16,7 @@
              [routerLinkActiveOptions]="{ exact: true }"
              class="nav-item">
             <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-            <span matListItemTitle *ngIf="sidenavOpen || isMobile">{{ item.label }}</span>
+            <span matListItemTitle>{{ item.label }}</span>
           </a>
         </mat-nav-list>
       </div>
@@ -29,7 +28,7 @@
              [routerLinkActiveOptions]="{ exact: true }"
              class="nav-item">
             <mat-icon matListItemIcon>{{ docsNavItem.icon }}</mat-icon>
-            <span matListItemTitle *ngIf="sidenavOpen || isMobile">{{ docsNavItem.label }}</span>
+            <span matListItemTitle>{{ docsNavItem.label }}</span>
           </a>
         </mat-nav-list>
       </div>
@@ -132,24 +131,49 @@
       <button [class.active]="chatTab === 'help'" (click)="chatTab = 'help'">Help</button>
     </div>
     <div class="chat-body">
-      <!-- Changelog as email-style updates (frontend only) -->
+      <!-- Changelog -->
       <ng-container *ngIf="chatTab === 'changelog'">
-        <div *ngIf="changelog.length === 0" class="no-results">No updates yet.</div>
-        <div class="changelog-email" *ngFor="let entry of changelog">
-          <div class="changelog-email-header">
-            <div class="changelog-email-icon">
-              <mat-icon>campaign</mat-icon>
+        <!-- Detail view -->
+        <ng-container *ngIf="selectedChangelog; else changelogList">
+          <div class="changelog-detail">
+            <button class="changelog-back" (click)="selectedChangelog = null">
+              <mat-icon>arrow_back</mat-icon>
+              <span>Back</span>
+            </button>
+            <div class="changelog-detail-header">
+              <div class="changelog-email-icon">
+                <mat-icon>campaign</mat-icon>
+              </div>
+              <div class="changelog-email-meta">
+                <span class="changelog-email-subject">{{ selectedChangelog.version }} Release</span>
+                <span class="changelog-email-date">{{ formatChangelogDate(selectedChangelog.releaseDate) }}</span>
+              </div>
             </div>
-            <div class="changelog-email-meta">
-              <span class="changelog-email-subject">{{ entry.version }} Release</span>
-              <span class="changelog-email-date">{{ formatChangelogDate(entry.releaseDate) }}</span>
+            <div class="changelog-detail-body">{{ selectedChangelog.changes }}</div>
+            <div class="changelog-email-footer">
+              <span class="changelog-email-tag">{{ selectedChangelog.component }}</span>
             </div>
           </div>
-          <div class="changelog-email-body">{{ entry.changes }}</div>
-          <div class="changelog-email-footer">
-            <span class="changelog-email-tag">Frontend</span>
+        </ng-container>
+        <!-- List view -->
+        <ng-template #changelogList>
+          <div *ngIf="changelog.length === 0" class="no-results">No updates yet.</div>
+          <div class="changelog-email" *ngFor="let entry of changelog" (click)="selectedChangelog = entry">
+            <div class="changelog-email-header">
+              <div class="changelog-email-icon">
+                <mat-icon>campaign</mat-icon>
+              </div>
+              <div class="changelog-email-meta">
+                <span class="changelog-email-subject">{{ entry.version }} Release</span>
+                <span class="changelog-email-date">{{ formatChangelogDate(entry.releaseDate) }}</span>
+              </div>
+            </div>
+            <div class="changelog-email-body">{{ entry.changes }}</div>
+            <div class="changelog-email-footer">
+              <span class="changelog-email-tag">{{ entry.component }}</span>
+            </div>
           </div>
-        </div>
+        </ng-template>
       </ng-container>
 
       <!-- Help as chat with / commands -->

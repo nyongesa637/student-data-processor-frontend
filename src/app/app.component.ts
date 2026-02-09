@@ -66,6 +66,7 @@ export class AppComponent implements OnInit, OnDestroy {
   changelog: ChangelogEntry[] = [];
   changelogCount = 0;
   componentFilter: ChangelogFilter = 'FRONTEND';
+  selectedChangelog: ChangelogEntry | null = null;
 
   // Help chat
   helpInput = '';
@@ -125,9 +126,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.subs.push(
       this.breakpointObserver.observe(['(max-width: 768px)']).subscribe(result => {
         this.isMobile = result.matches;
-        if (this.isMobile) {
-          this.sidenavOpen = false;
-        }
+        this.sidenavOpen = !this.isMobile;
       })
     );
 
