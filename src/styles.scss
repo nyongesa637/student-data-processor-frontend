@@ -66,6 +66,18 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   flex-direction: column !important;
 }
 
+/* Override Angular Material's inline margin-left for collapsed sidenav.
+   mode="side" sets margin-left inline to the sidenav's initial width (240px).
+   When we CSS-transition the sidenav to 64px, the inline style doesn't update,
+   so we force the content margin to match the collapsed width. */
+.app-container .mat-drawer-content {
+  transition: margin-left 0.3s ease !important;
+}
+
+.sidenav.collapsed ~ .mat-drawer-content {
+  margin-left: 64px !important;
+}
+
 /* Override Material primary button color to match sky blue theme */
 .mat-mdc-raised-button.mat-primary,
 .mat-mdc-unelevated-button.mat-primary {

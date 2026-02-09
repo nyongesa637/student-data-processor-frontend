@@ -55,7 +55,7 @@ interface Student {
                 <mat-option *ngFor="let c of classes; trackBy: trackByClass" [value]="c">{{ c }}</mat-option>
               </mat-select>
             </mat-form-field>
-            <button mat-raised-button color="primary" (click)="search()">
+            <button mat-raised-button class="action-btn" (click)="search()">
               <mat-icon>search</mat-icon> Search
             </button>
           </div>
@@ -152,7 +152,7 @@ interface Student {
               <mat-option *ngFor="let c of classes; trackBy: trackByClass" [value]="c">{{ c }}</mat-option>
             </mat-select>
           </mat-form-field>
-          <button mat-raised-button color="primary" class="full-width" (click)="search(); showFilterDrawer = false">
+          <button mat-raised-button class="action-btn full-width" (click)="search(); showFilterDrawer = false">
             <mat-icon>search</mat-icon> Apply Filter
           </button>
         </div>
@@ -203,6 +203,17 @@ interface Student {
     .export-buttons { display: flex; gap: 8px; margin-bottom: 16px; }
     .export-buttons button mat-icon { margin-right: 4px; font-size: 18px; width: 18px; height: 18px; }
     .full-width { width: 100%; }
+    .action-btn {
+      background: var(--primary, #0ea5e9) !important;
+      color: white !important;
+      box-shadow: none !important;
+      border: 1px solid var(--primary, #0ea5e9) !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      mat-icon { margin-right: 4px; }
+    }
     .table-container { overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
     table { width: 100%; min-width: 600px; }
 
@@ -352,14 +363,13 @@ interface Student {
     @media (max-width: 768px) {
       .report-card {
         box-shadow: none !important;
-        border-radius: 0;
-        margin: -16px;
+        border-radius: 8px;
         padding-bottom: 80px;
       }
 
       .table-container {
-        margin: 0 -16px;
-        padding: 0;
+        margin: 0;
+        padding: 0 4px;
       }
     }
   `]

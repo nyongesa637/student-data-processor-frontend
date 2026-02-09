@@ -46,7 +46,7 @@ import { ToastService } from '../../services/toast.service';
     </div>
   `,
   styles: [`
-    .dialog-container { padding: 24px; min-width: 400px; }
+    .dialog-container { padding: 24px; max-width: 100%; box-sizing: border-box; }
     .dialog-header h2 { margin: 0 0 4px; }
     .dialog-header p { color: #666; margin: 0 0 20px; }
     .dialog-body { display: flex; flex-direction: column; gap: 4px; }
@@ -585,7 +585,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas.parentElement!);
 
-    const nodeCount = 35;
+    const nodeCount = 65;
     this.cardMeshNodes[index] = [];
     for (let i = 0; i < nodeCount; i++) {
       this.cardMeshNodes[index].push({
@@ -665,6 +665,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openFeatureDialog() {
-    this.dialog.open(FeatureRequestDialogComponent, { width: '500px' });
+    this.dialog.open(FeatureRequestDialogComponent, { width: '500px', maxWidth: '92vw' });
   }
 }
