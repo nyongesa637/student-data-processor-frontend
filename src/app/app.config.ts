@@ -8,6 +8,7 @@ import { DataGenerationComponent } from './components/data-generation/data-gener
 import { DataProcessingComponent } from './components/data-processing/data-processing.component';
 import { DataUploadComponent } from './components/data-upload/data-upload.component';
 import { ReportComponent } from './components/report/report.component';
+import { DocsComponent } from './components/docs/docs.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -16,6 +17,7 @@ const routes: Routes = [
   { path: 'process', component: DataProcessingComponent, data: { title: 'Process Excel' } },
   { path: 'upload', component: DataUploadComponent, data: { title: 'Upload CSV' } },
   { path: 'report', component: ReportComponent, data: { title: 'Report' } },
+  { path: 'docs', component: DocsComponent, data: { title: 'Documentation' } },
   { path: '**', redirectTo: 'home' }
 ];
 

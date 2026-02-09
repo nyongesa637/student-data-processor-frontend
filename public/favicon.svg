@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0ea5e9"/>
+  <g transform="translate(32,30)">
+    <!-- Cap top -->
+    <polygon points="-20,0 0,-12 20,0 0,12" fill="white"/>
+    <!-- Cap button -->
+    <circle cx="0" cy="-12" r="2" fill="white"/>
+    <!-- Tassel line -->
+    <line x1="0" y1="-12" x2="-14" y2="-4" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="-14" cy="-4" r="2" fill="white"/>
+    <!-- Board brim bottom -->
+    <path d="M-12,6 Q0,14 12,6" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</svg>

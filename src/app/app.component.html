@@ -1,65 +1,150 @@
-<mat-sidenav-container class="app-container">
-  <mat-sidenav [opened]="true" mode="side" [class.collapsed]="!sidenavOpen" class="sidenav">
-    <div class="sidenav-header">
-      <mat-icon class="app-logo">school</mat-icon>
-      <span class="app-title" *ngIf="sidenavOpen">SDP</span>
+<div class="app-shell">
+  <mat-sidenav-container class="app-container">
+    <mat-sidenav [opened]="isMobile ? sidenavOpen : true"
+                 [mode]="isMobile ? 'over' : 'side'"
+                 [class.collapsed]="!sidenavOpen && !isMobile"
+                 class="sidenav"
+                 (closedStart)="isMobile ? sidenavOpen = false : null">
+      <div class="sidenav-header">
+        <mat-icon class="app-logo">school</mat-icon>
+        <span class="app-title" *ngIf="sidenavOpen || isMobile">SDP</span>
+      </div>
+      <mat-nav-list>
+        <a mat-list-item *ngFor="let item of navItems"
+           [routerLink]="item.path"
+           routerLinkActive="active-link"
+           [routerLinkActiveOptions]="{ exact: true }"
+           class="nav-item">
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle *ngIf="sidenavOpen || isMobile">{{ item.label }}</span>
+        </a>
+      </mat-nav-list>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="main-content">
+      <mat-toolbar class="header">
+        <button mat-icon-button (click)="toggleSidenav()" class="menu-toggle">
+          <mat-icon>{{ sidenavOpen ? 'menu_open' : 'chevron_right' }}</mat-icon>
+        </button>
+
+        <nav class="breadcrumbs">
+          <span *ngFor="let crumb of breadcrumbs; let last = last">
+            <a *ngIf="!last" routerLink="/home" class="breadcrumb-link">{{ crumb }}</a>
+            <span *ngIf="last" class="breadcrumb-current">{{ crumb }}</span>
+            <mat-icon *ngIf="!last" class="breadcrumb-separator">chevron_right</mat-icon>
+          </span>
+        </nav>
+
+        <div class="global-search">
+          <div class="search-wrapper">
+            <mat-icon>search</mat-icon>
+            <input #searchInput
+                   type="text"
+                   placeholder="Search pages, students..."
+                   [(ngModel)]="searchQuery"
+                   (input)="onSearchInput()"
+                   (focus)="onSearchFocus()">
+            <span class="search-shortcut" *ngIf="!isMobile">/</span>
+          </div>
+          <div class="search-dropdown" *ngIf="showSearchDropdown">
+            <ng-container *ngIf="searchResults.length > 0; else noResults">
+              <div class="search-group" *ngFor="let group of ['Pages', 'Actions', 'Students']">
+                <ng-container *ngIf="getGroupResults(group).length > 0">
+                  <div class="group-label">{{ group }}</div>
+                  <div class="search-item"
+                       *ngFor="let result of getGroupResults(group)"
+                       (mousedown)="onSearchResultClick(result)">
+                    <mat-icon>{{ result.icon }}</mat-icon>
+                    <span class="item-text">{{ result.text }}</span>
+                    <span class="item-sub" *ngIf="result.sub">{{ result.sub }}</span>
+                  </div>
+                </ng-container>
+              </div>
+            </ng-container>
+            <ng-template #noResults>
+              <div class="no-results">No results for "{{ searchQuery }}"</div>
+            </ng-template>
+          </div>
+        </div>
+
+        <span class="spacer"></span>
+
+        <button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="notification-btn">
+          <mat-icon [matBadge]="unreadCount > 0 ? unreadCount : null" matBadgeColor="warn" matBadgeSize="small">
+            notifications
+          </mat-icon>
+        </button>
+        <mat-menu #notificationMenu="matMenu" class="notification-menu">
+          <div class="notification-header" (click)="$event.stopPropagation()">
+            <strong>Notifications</strong>
+            <button mat-button color="primary" (click)="markAllRead()" *ngIf="unreadCount > 0">
+              Mark all read
+            </button>
+          </div>
+          <div *ngIf="notifications.length === 0" class="notification-empty" (click)="$event.stopPropagation()">
+            No notifications yet
+          </div>
+          <button mat-menu-item *ngFor="let n of notifications" (click)="markRead(n)"
+                  [class.unread]="!n.read" class="notification-item">
+            <mat-icon>{{ getNotificationIcon(n.type) }}</mat-icon>
+            <div class="notification-content">
+              <span class="notification-message">{{ n.message }}</span>
+              <span class="notification-time">{{ formatTime(n.createdAt) }}</span>
+            </div>
+          </button>
+        </mat-menu>
+      </mat-toolbar>
+
+      <div class="page-content">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+
+  <!-- Floating Chat -->
+  <button mat-fab class="chat-fab" (click)="toggleChat()"
+          [matBadge]="changelogCount > 0 ? changelogCount : null" matBadgeColor="warn" matBadgeSize="small">
+    <mat-icon>{{ chatOpen ? 'close' : 'chat' }}</mat-icon>
+  </button>
+
+  <div class="chat-panel" *ngIf="chatOpen">
+    <div class="chat-header">
+      <h3>Help & Updates</h3>
     </div>
-    <mat-nav-list>
-      <a mat-list-item *ngFor="let item of navItems"
+    <div class="chat-tabs">
+      <button [class.active]="chatTab === 'changelog'" (click)="chatTab = 'changelog'">Changelog</button>
+      <button [class.active]="chatTab === 'help'" (click)="chatTab = 'help'">Help</button>
+    </div>
+    <div class="chat-body">
+      <ng-container *ngIf="chatTab === 'changelog'">
+        <div *ngIf="changelog.length === 0" class="no-results">No changelog entries yet.</div>
+        <div class="changelog-item" *ngFor="let entry of changelog">
+          <span class="changelog-version">{{ entry.version || 'v1.0' }}</span>
+          <span class="changelog-date">{{ formatChangelogDate(entry.date || entry.createdAt) }}</span>
+          <div class="changelog-text">{{ entry.description || entry.message }}</div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="chatTab === 'help'">
+        <div class="help-section">
+          <div class="help-item" *ngFor="let item of helpItems" (click)="navigateHelp(item.route)">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.text }}</span>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="bottom-nav" *ngIf="isMobile">
+    <div class="bottom-nav-items">
+      <a *ngFor="let item of navItems.slice(0, 5)"
          [routerLink]="item.path"
          routerLinkActive="active-link"
-         [routerLinkActiveOptions]="{ exact: true }"
-         class="nav-item">
-        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-        <span matListItemTitle *ngIf="sidenavOpen">{{ item.label }}</span>
+         [routerLinkActiveOptions]="{ exact: true }">
+        <mat-icon>{{ item.icon }}</mat-icon>
+        <span>{{ item.label }}</span>
       </a>
-    </mat-nav-list>
-  </mat-sidenav>
-
-  <mat-sidenav-content class="main-content">
-    <mat-toolbar class="header">
-      <button mat-icon-button (click)="toggleSidenav()" class="menu-toggle">
-        <mat-icon>menu</mat-icon>
-      </button>
-
-      <nav class="breadcrumbs">
-        <span *ngFor="let crumb of breadcrumbs; let last = last">
-          <a *ngIf="!last" routerLink="/home" class="breadcrumb-link">{{ crumb }}</a>
-          <span *ngIf="last" class="breadcrumb-current">{{ crumb }}</span>
-          <mat-icon *ngIf="!last" class="breadcrumb-separator">chevron_right</mat-icon>
-        </span>
-      </nav>
-
-      <span class="spacer"></span>
-
-      <button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="notification-btn">
-        <mat-icon [matBadge]="unreadCount > 0 ? unreadCount : null" matBadgeColor="warn" matBadgeSize="small">
-          notifications
-        </mat-icon>
-      </button>
-      <mat-menu #notificationMenu="matMenu" class="notification-menu">
-        <div class="notification-header" (click)="$event.stopPropagation()">
-          <strong>Notifications</strong>
-          <button mat-button color="primary" (click)="markAllRead()" *ngIf="unreadCount > 0">
-            Mark all read
-          </button>
-        </div>
-        <div *ngIf="notifications.length === 0" class="notification-empty" (click)="$event.stopPropagation()">
-          No notifications yet
-        </div>
-        <button mat-menu-item *ngFor="let n of notifications" (click)="markRead(n)"
-                [class.unread]="!n.read" class="notification-item">
-          <mat-icon>{{ getNotificationIcon(n.type) }}</mat-icon>
-          <div class="notification-content">
-            <span class="notification-message">{{ n.message }}</span>
-            <span class="notification-time">{{ formatTime(n.createdAt) }}</span>
-          </div>
-        </button>
-      </mat-menu>
-    </mat-toolbar>
-
-    <div class="page-content">
-      <router-outlet></router-outlet>
     </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  </nav>
+</div>

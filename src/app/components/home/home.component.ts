@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChildren, QueryList } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, NgZone, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -87,6 +87,14 @@ export class FeatureRequestDialogComponent {
   }
 }
 
+interface MeshNode {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+}
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -96,26 +104,29 @@ export class FeatureRequestDialogComponent {
   ],
   template: `
     <div class="dashboard">
-      <!-- Action Cards -->
-      <div class="action-cards">
-        <div class="action-card get-started" #meshCard (mousemove)="onMouseMove($event, 0)" (mouseleave)="onMouseLeave(0)">
-          <div class="card-content">
-            <mat-icon class="card-icon">rocket_launch</mat-icon>
-            <h2>Get Started</h2>
-            <p>Generate student data to begin your data processing workflow</p>
-            <button mat-raised-button routerLink="/generate" class="card-btn">
-              <mat-icon>arrow_forward</mat-icon> Generate Data
-            </button>
+      <!-- Action Cards with Mesh Background -->
+      <div class="mesh-container" (mousemove)="onMeshMouseMove($event)" (mouseleave)="onMeshMouseLeave()">
+        <canvas #meshCanvas class="mesh-canvas"></canvas>
+        <div class="action-cards">
+          <div class="action-card get-started">
+            <div class="card-content">
+              <mat-icon class="card-icon">rocket_launch</mat-icon>
+              <h2>Get Started</h2>
+              <p>Generate student data to begin your data processing workflow</p>
+              <button mat-raised-button routerLink="/generate" class="card-btn">
+                <mat-icon>arrow_forward</mat-icon> Generate Data
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="action-card request-feature" #meshCard (mousemove)="onMouseMove($event, 1)" (mouseleave)="onMouseLeave(1)">
-          <div class="card-content">
-            <mat-icon class="card-icon">lightbulb</mat-icon>
-            <h2>Request Feature</h2>
-            <p>Have an idea? Submit a feature request and help shape the app</p>
-            <button mat-raised-button (click)="openFeatureDialog()" class="card-btn">
-              <mat-icon>add</mat-icon> Request Feature
-            </button>
+          <div class="action-card request-feature">
+            <div class="card-content">
+              <mat-icon class="card-icon">lightbulb</mat-icon>
+              <h2>Request Feature</h2>
+              <p>Have an idea? Submit a feature request and help shape the app</p>
+              <button mat-raised-button (click)="openFeatureDialog()" class="card-btn">
+                <mat-icon>add</mat-icon> Request Feature
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -127,7 +138,7 @@ export class FeatureRequestDialogComponent {
         </h3>
         <div class="timeline">
           <div class="timeline-step" *ngFor="let step of steps; let i = index; let last = last">
-            <a [routerLink]="step.route" class="step-circle" [style.background]="step.color">
+            <a [routerLink]="step.route" class="step-circle">
               <mat-icon>{{ step.icon }}</mat-icon>
             </a>
             <div class="step-info">
@@ -223,32 +234,46 @@ export class FeatureRequestDialogComponent {
       margin: 0 auto;
     }
 
+    .mesh-container {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 32px;
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
+    }
+
+    .mesh-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
     .action-cards {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 24px;
-      margin-bottom: 32px;
+      padding: 32px;
+      position: relative;
+      z-index: 1;
     }
 
     .action-card {
-      border-radius: 16px;
+      border-radius: 12px;
       padding: 32px;
       position: relative;
       overflow: hidden;
       cursor: default;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: transform 0.2s ease, background 0.2s ease;
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-      }
-
-      &.get-started {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      }
-
-      &.request-feature {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        background: rgba(255, 255, 255, 0.15);
       }
 
       .card-content {
@@ -299,18 +324,18 @@ export class FeatureRequestDialogComponent {
       gap: 8px;
       font-size: 18px;
       font-weight: 600;
-      color: #333;
+      color: var(--text, #1f2937);
       margin-bottom: 20px;
 
-      mat-icon { color: #7c4dff; }
+      mat-icon { color: var(--primary, #0ea5e9); }
     }
 
     .timeline-section {
-      background: white;
+      background: var(--surface, white);
       border-radius: 12px;
       padding: 24px;
       margin-bottom: 32px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+      border: 1px solid var(--border, #e5e7eb);
     }
 
     .timeline {
@@ -335,7 +360,8 @@ export class FeatureRequestDialogComponent {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
+        background: var(--primary-light, #e0f2fe);
+        color: var(--primary, #0ea5e9);
         text-decoration: none;
         z-index: 1;
         transition: transform 0.2s;
@@ -356,18 +382,18 @@ export class FeatureRequestDialogComponent {
           font-size: 11px;
           text-transform: uppercase;
           letter-spacing: 1px;
-          color: #999;
+          color: var(--text-muted, #9ca3af);
         }
 
         .step-name {
           font-size: 14px;
           font-weight: 600;
-          color: #333;
+          color: var(--text, #1f2937);
         }
 
         .step-desc {
           font-size: 12px;
-          color: #777;
+          color: var(--text-secondary, #6b7280);
         }
       }
 
@@ -377,15 +403,15 @@ export class FeatureRequestDialogComponent {
         left: calc(50% + 30px);
         width: calc(100% - 60px);
         height: 2px;
-        background: linear-gradient(to right, #7c4dff, #b388ff);
+        background: linear-gradient(to right, var(--primary, #0ea5e9), rgba(14, 165, 233, 0.4));
       }
     }
 
     .analytics-section {
-      background: white;
+      background: var(--surface, white);
       border-radius: 12px;
       padding: 24px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+      border: 1px solid var(--border, #e5e7eb);
     }
 
     .analytics-grid {
@@ -400,12 +426,12 @@ export class FeatureRequestDialogComponent {
       align-items: center;
       gap: 12px;
       padding: 16px;
-      background: #f8f9fa;
+      background: var(--bg, #f8fafc);
       border-radius: 10px;
-      border-left: 3px solid #7c4dff;
+      border: 1px solid var(--border, #e5e7eb);
 
       mat-icon {
-        color: #7c4dff;
+        color: var(--primary, #0ea5e9);
         font-size: 28px;
         width: 28px;
         height: 28px;
@@ -418,12 +444,12 @@ export class FeatureRequestDialogComponent {
         .stat-value {
           font-size: 22px;
           font-weight: 700;
-          color: #333;
+          color: var(--text, #1f2937);
         }
 
         .stat-label {
           font-size: 12px;
-          color: #777;
+          color: var(--text-secondary, #6b7280);
         }
       }
     }
@@ -431,7 +457,7 @@ export class FeatureRequestDialogComponent {
     .class-distribution {
       margin-bottom: 24px;
 
-      h4 { font-size: 15px; color: #555; margin-bottom: 12px; }
+      h4 { font-size: 15px; color: var(--text-secondary, #6b7280); margin-bottom: 12px; }
 
       .distribution-bars {
         display: flex;
@@ -447,21 +473,21 @@ export class FeatureRequestDialogComponent {
         .dist-label {
           min-width: 70px;
           font-size: 13px;
-          color: #555;
+          color: var(--text-secondary, #6b7280);
           text-align: right;
         }
 
         .dist-bar-container {
           flex: 1;
           height: 20px;
-          background: #f0f0f0;
+          background: var(--bg, #f8fafc);
           border-radius: 10px;
           overflow: hidden;
         }
 
         .dist-bar {
           height: 100%;
-          background: linear-gradient(to right, #7c4dff, #b388ff);
+          background: linear-gradient(to right, var(--primary, #0ea5e9), rgba(14, 165, 233, 0.5));
           border-radius: 10px;
           transition: width 0.5s ease;
         }
@@ -470,13 +496,13 @@ export class FeatureRequestDialogComponent {
           min-width: 50px;
           font-size: 13px;
           font-weight: 600;
-          color: #333;
+          color: var(--text, #1f2937);
         }
       }
     }
 
     .recent-section {
-      h4 { font-size: 15px; color: #555; margin-bottom: 12px; }
+      h4 { font-size: 15px; color: var(--text-secondary, #6b7280); margin-bottom: 12px; }
 
       .recent-table {
         width: 100%;
@@ -486,7 +512,7 @@ export class FeatureRequestDialogComponent {
       .view-more {
         display: inline-block;
         margin-top: 8px;
-        color: #7c4dff;
+        color: var(--primary, #0ea5e9);
         text-decoration: none;
         font-size: 13px;
         font-weight: 500;
@@ -494,28 +520,43 @@ export class FeatureRequestDialogComponent {
         &:hover { text-decoration: underline; }
       }
     }
+
+    @media (max-width: 768px) {
+      .action-cards {
+        grid-template-columns: 1fr;
+      }
+      .analytics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
   `]
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   analytics: any = null;
   loadingAnalytics = true;
   classDistEntries: [string, number][] = [];
   maxClassCount = 0;
 
-  @ViewChildren('meshCard') meshCards!: QueryList<ElementRef>;
+  @ViewChild('meshCanvas') meshCanvasRef!: ElementRef<HTMLCanvasElement>;
+
+  private meshNodes: MeshNode[] = [];
+  private animFrameId = 0;
+  private mouseX = -1000;
+  private mouseY = -1000;
 
   steps = [
-    { name: 'Generate Data', description: 'Create Excel file', icon: 'dataset', route: '/generate', color: '#667eea' },
-    { name: 'Process Excel', description: 'Convert to CSV (+10)', icon: 'transform', route: '/process', color: '#764ba2' },
-    { name: 'Upload CSV', description: 'Store in database (+5)', icon: 'cloud_upload', route: '/upload', color: '#f093fb' },
-    { name: 'View Reports', description: 'Analyze & export', icon: 'assessment', route: '/report', color: '#f5576c' }
+    { name: 'Generate Data', description: 'Create Excel file', icon: 'dataset', route: '/generate' },
+    { name: 'Process Excel', description: 'Convert to CSV (+10)', icon: 'transform', route: '/process' },
+    { name: 'Upload CSV', description: 'Store in database (+5)', icon: 'cloud_upload', route: '/upload' },
+    { name: 'View Reports', description: 'Analyze & export', icon: 'assessment', route: '/report' }
   ];
 
   constructor(
     private api: ApiService,
     private toast: ToastService,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit() {
@@ -534,29 +575,115 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  ngAfterViewInit() {
+    this.initMesh();
+  }
+
+  ngOnDestroy() {
+    if (this.animFrameId) {
+      cancelAnimationFrame(this.animFrameId);
+    }
+  }
+
+  private initMesh() {
+    const canvas = this.meshCanvasRef?.nativeElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const resize = () => {
+      const rect = canvas.parentElement!.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    };
+    resize();
+
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvas.parentElement!);
+
+    // Create nodes
+    for (let i = 0; i < 60; i++) {
+      this.meshNodes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        radius: Math.random() * 2 + 1
+      });
+    }
+
+    this.ngZone.runOutsideAngular(() => {
+      const animate = () => {
+        this.animFrameId = requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Update and draw nodes
+        for (const node of this.meshNodes) {
+          // Mouse repulsion
+          const dx = node.x - this.mouseX;
+          const dy = node.y - this.mouseY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120 && dist > 0) {
+            const force = (120 - dist) / 120 * 0.8;
+            node.vx += (dx / dist) * force;
+            node.vy += (dy / dist) * force;
+          }
+
+          // Damping
+          node.vx *= 0.98;
+          node.vy *= 0.98;
+
+          node.x += node.vx;
+          node.y += node.vy;
+
+          // Bounce off walls
+          if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+          if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+          node.x = Math.max(0, Math.min(canvas.width, node.x));
+          node.y = Math.max(0, Math.min(canvas.height, node.y));
+
+          // Draw node
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+          ctx.fill();
+        }
+
+        // Draw connections
+        for (let i = 0; i < this.meshNodes.length; i++) {
+          for (let j = i + 1; j < this.meshNodes.length; j++) {
+            const a = this.meshNodes[i];
+            const b = this.meshNodes[j];
+            const d = Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+            if (d < 150) {
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.strokeStyle = `rgba(255, 255, 255, ${0.15 * (1 - d / 150)})`;
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
+          }
+        }
+      };
+      animate();
+    });
+  }
+
+  onMeshMouseMove(event: MouseEvent) {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.mouseX = event.clientX - rect.left;
+    this.mouseY = event.clientY - rect.top;
+  }
+
+  onMeshMouseLeave() {
+    this.mouseX = -1000;
+    this.mouseY = -1000;
+  }
+
   getBarWidth(count: number): number {
     return (count / this.maxClassCount) * 100;
-  }
-
-  onMouseMove(event: MouseEvent, index: number) {
-    const cards = this.meshCards?.toArray();
-    if (!cards || !cards[index]) return;
-    const el = cards[index].nativeElement as HTMLElement;
-    const rect = el.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    el.style.background = index === 0
-      ? `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.2), transparent 60%), linear-gradient(135deg, #667eea 0%, #764ba2 100%)`
-      : `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.2), transparent 60%), linear-gradient(135deg, #f093fb 0%, #f5576c 100%)`;
-  }
-
-  onMouseLeave(index: number) {
-    const cards = this.meshCards?.toArray();
-    if (!cards || !cards[index]) return;
-    const el = cards[index].nativeElement as HTMLElement;
-    el.style.background = index === 0
-      ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
   }
 
   openFeatureDialog() {
