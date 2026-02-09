@@ -1,0 +1,33 @@
+version: 1
+
+repository:
+  name: student-data-processor-frontend
+  owner: nyongesa637
+  platform: github
+
+language: typescript
+framework: angular
+
+include:
+  - src/**/*.ts
+  - src/**/*.html
+  - src/**/*.scss
+  - angular.json
+  - tsconfig.json
+  - package.json
+
+exclude:
+  - node_modules/**
+  - dist/**
+  - .angular/**
+  - coverage/**
+  - "**/*.spec.ts"
+
+instructions: |
+  This is an Angular 18 frontend using standalone components (no NgModules).
+  All components use inline templates and styles.
+  Angular Material 18.2 is the UI framework with a custom sky blue (#0ea5e9) theme.
+  TypeScript strict mode is enabled with strict Angular templates.
+  Routes are defined in app.config.ts.
+  Services use providedIn: 'root' for dependency injection.
+  The backend API runs on port 9090 and the base URL is configured in api.service.ts.
