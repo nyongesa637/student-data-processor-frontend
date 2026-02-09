@@ -60,8 +60,38 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   background: #aaa;
 }
 
+/* Sidenav inner container flex for footer positioning */
+.sidenav .mat-drawer-inner-container {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Override Material primary button color to match sky blue theme */
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary {
+  --mdc-filled-button-container-color: var(--primary) !important;
+  --mdc-filled-button-label-text-color: white !important;
+}
+
+.mat-mdc-button.mat-primary {
+  --mdc-text-button-label-text-color: var(--primary) !important;
+}
+
+/* Override form field focus colors to match sky blue theme */
+.mat-mdc-form-field {
+  --mdc-outlined-text-field-focus-outline-color: var(--primary);
+  --mdc-outlined-text-field-focus-label-text-color: var(--primary);
+  --mdc-outlined-text-field-caret-color: var(--primary);
+}
+
+/* Override mat-select focus color */
+.mat-mdc-select:focus-within .mat-mdc-select-arrow {
+  color: var(--primary);
+}
+
 /* Notification panel global styles (CDK overlay) */
 .notification-menu .mat-mdc-menu-panel {
   overflow-x: hidden;
-  max-width: 380px;
+  min-width: 380px !important;
+  max-width: 420px !important;
 }

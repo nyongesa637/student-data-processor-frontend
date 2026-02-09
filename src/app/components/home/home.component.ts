@@ -137,9 +137,6 @@ interface MeshNode {
 
       <!-- Steps Timeline -->
       <div class="timeline-section">
-        <h3 class="section-title">
-          <mat-icon>timeline</mat-icon> Workflow Steps
-        </h3>
         <div class="timeline">
           <div class="timeline-step" *ngFor="let step of steps; let i = index; let last = last">
             <a [routerLink]="step.route" class="step-circle">
@@ -157,34 +154,28 @@ interface MeshNode {
 
       <!-- Analytics -->
       <div class="analytics-section">
-        <h3 class="section-title">
-          <mat-icon>analytics</mat-icon> Analytics Summary
-        </h3>
+        <h3 class="section-title">Analytics Summary</h3>
         <mat-progress-bar *ngIf="loadingAnalytics" mode="indeterminate"></mat-progress-bar>
         <div class="analytics-grid" *ngIf="!loadingAnalytics">
           <div class="stat-card">
-            <mat-icon>people</mat-icon>
             <div class="stat-info">
               <span class="stat-value">{{ analytics?.totalStudents | number }}</span>
               <span class="stat-label">Total Students</span>
             </div>
           </div>
           <div class="stat-card">
-            <mat-icon>trending_up</mat-icon>
             <div class="stat-info">
               <span class="stat-value">{{ analytics?.averageScore }}</span>
               <span class="stat-label">Average Score</span>
             </div>
           </div>
           <div class="stat-card">
-            <mat-icon>arrow_upward</mat-icon>
             <div class="stat-info">
               <span class="stat-value">{{ analytics?.highestScore }}</span>
               <span class="stat-label">Highest Score</span>
             </div>
           </div>
           <div class="stat-card">
-            <mat-icon>arrow_downward</mat-icon>
             <div class="stat-info">
               <span class="stat-value">{{ analytics?.lowestScore }}</span>
               <span class="stat-label">Lowest Score</span>
@@ -352,15 +343,10 @@ interface MeshNode {
     }
 
     .section-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
       font-size: 18px;
       font-weight: 600;
       color: var(--text, #1f2937);
       margin-bottom: 20px;
-
-      mat-icon { color: var(--primary, #0ea5e9); }
     }
 
     .timeline-section {
@@ -455,20 +441,10 @@ interface MeshNode {
     }
 
     .stat-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
       padding: 16px;
       background: var(--bg, #f8fafc);
       border-radius: 10px;
       border: 1px solid var(--border, #e5e7eb);
-
-      mat-icon {
-        color: var(--primary, #0ea5e9);
-        font-size: 28px;
-        width: 28px;
-        height: 28px;
-      }
 
       .stat-info {
         display: flex;
@@ -513,6 +489,34 @@ interface MeshNode {
       }
       .analytics-grid {
         grid-template-columns: repeat(2, 1fr);
+      }
+      .timeline {
+        flex-direction: column;
+        gap: 0;
+      }
+      .timeline-step {
+        flex-direction: row;
+        align-items: flex-start;
+        min-width: auto;
+        padding-bottom: 24px;
+
+        .step-circle {
+          flex-shrink: 0;
+        }
+
+        .step-info {
+          text-align: left;
+          margin-top: 0;
+          margin-left: 16px;
+        }
+
+        .timeline-connector {
+          top: 52px;
+          left: 26px;
+          width: 2px !important;
+          height: calc(100% - 40px) !important;
+          background: linear-gradient(to bottom, var(--primary, #0ea5e9), rgba(14, 165, 233, 0.4)) !important;
+        }
       }
     }
   `]

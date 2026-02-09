@@ -12,11 +12,14 @@
 .sidenav {
   width: 240px;
   background: var(--surface);
-  transition: width 0.3s ease;
-  overflow: hidden;
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  transition: width 0.3s ease;
+  overflow: hidden;
+
+  --mdc-list-list-item-label-text-size: 13px;
+  --mdc-list-list-item-one-line-container-height: 40px;
 
   &.collapsed {
     width: 64px;
@@ -149,7 +152,7 @@
     position: relative;
     flex: 1;
     min-width: 0;
-    max-width: 600px;
+    max-width: 720px;
     margin: 0 12px;
 
     .search-wrapper {
@@ -280,6 +283,7 @@
   .notification-btn {
     color: var(--text-secondary);
     flex-shrink: 0;
+    margin-left: auto;
   }
 }
 
@@ -313,7 +317,7 @@
     display: flex;
     flex-direction: column;
     line-height: 1.4;
-    max-width: 280px;
+    max-width: 340px;
 
     .notification-message {
       font-size: 13px;

@@ -16,7 +16,7 @@ import { ToastService } from '../../services/toast.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressBarModule, MatIconModule],
   template: `
-    <div class="gen-layout" [class.has-preview]="preview">
+    <div class="gen-layout has-preview">
       <div class="gen-main">
         <mat-card class="gen-card">
           <mat-card-header>
@@ -61,8 +61,8 @@ import { ToastService } from '../../services/toast.service';
       </div>
 
       <!-- Preview panel on the right -->
-      <div class="preview-side" *ngIf="preview">
-        <div class="preview-editor">
+      <div class="preview-side">
+        <div class="preview-editor" *ngIf="preview">
           <div class="preview-toolbar">
             <div class="preview-tab">
               <mat-icon>description</mat-icon>
@@ -98,6 +98,11 @@ import { ToastService } from '../../services/toast.service';
           <div class="preview-footer">
             Showing {{ previewRows.length }} of {{ preview.count | number }} records
           </div>
+        </div>
+        <div class="preview-empty" *ngIf="!preview">
+          <mat-icon>dataset</mat-icon>
+          <p class="empty-title">Data Preview</p>
+          <p class="empty-text">Generate data to see a preview of the records here</p>
         </div>
       </div>
     </div>
@@ -181,6 +186,39 @@ import { ToastService } from '../../services/toast.service';
 
     .preview-side {
       min-width: 0;
+    }
+
+    .preview-empty {
+      border: 1px dashed var(--border, #e5e7eb);
+      border-radius: 8px;
+      padding: 48px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 220px;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: var(--text-muted, #9ca3af);
+        margin-bottom: 16px;
+      }
+
+      .empty-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text, #1f2937);
+        margin: 0 0 4px;
+      }
+
+      .empty-text {
+        font-size: 13px;
+        color: var(--text-muted, #9ca3af);
+        margin: 0;
+      }
     }
 
     .preview-editor {
