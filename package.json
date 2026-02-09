@@ -7,6 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:e2e": "npx playwright test",
     "prepare": "husky"
   },
   "private": true,
@@ -30,6 +31,7 @@
     "@angular-devkit/build-angular": "^18.2.21",
     "@angular/cli": "^18.2.21",
     "@angular/compiler-cli": "^18.2.0",
+    "@playwright/test": "^1.58.2",
     "@types/jasmine": "~5.1.0",
     "husky": "^9.1.7",
     "jasmine-core": "~5.2.0",
